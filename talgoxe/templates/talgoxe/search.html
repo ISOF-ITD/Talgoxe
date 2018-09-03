@@ -25,15 +25,15 @@
 
     <p>
       <ul>
-        {% for lemma in lemmata %}
-          <li class="träff virgin" id="lemma-{{ lemma.id }}">
+        {% for artikel in artiklar %}
+          <li class="träff virgin" id="lemma-{{ artikel.id }}">
             <button class="flytta-upp hidden"><strong>↑</strong></button>
             <button class="flytta-ner hidden"><strong>↓</strong></button>
             <span class="träffelement">▸</span>
-            <span class="träffelement">{% include "talgoxe/lemma.html" with artikel=lemma %}</span>
-            <span class="träffelement hidden" id="artikel-{{ lemma.id }}"></span>
-            <a href="{% url 'artikel' lemma.id %}">Redigera</a>
-            <input type="hidden" name="artikel-{{ lemma.id }}" />
+            <span class="träffelement">{% include "talgoxe/lemma.html" %}</span>
+            <span class="träffelement hidden" id="artikel-{{ artikel.id }}"></span>
+            <a href="{% url 'redigera' artikel.id %}">Redigera</a>
+            <input type="hidden" name="artikel-{{ artikel.id }}" />
             <p class="hidden" />
           </li>
         {% endfor %}

@@ -12,11 +12,11 @@
 <div id="twospalter">
 <div id="inmatning">
 <h2>Inmatning</h2>
-<form action="{% url 'redigera' lemma.id %}" method="POST">
+<form action="{% url 'redigera' artikel.id %}" method="POST">
 {% csrf_token %}
 <ul>
-<li>SO&nbsp;&nbsp;: <input type="text" name="stickord" value="{{ lemma }}" size="16"> <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1"></li>
-{% for d in input %}
+<li>SO&nbsp;&nbsp;: <input type="text" name="stickord" value="{{ artikel.lemma }}" size="16"> <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1"></li>
+{% for d in artikel.spolar %}
     <li id="data-{{ d.pos }}">
       {% spaceless %}
       <input type="text" size="3" name="type-{{ d.pos }}" value="{{ d.typ.format }}" id="type-{{ d.pos }}" class="d-type">
@@ -40,7 +40,7 @@
 <div id="artikel">
 <h2>Artikel</h2>
 <p>{% include 'talgoxe/artikel.html' %}</p>
-<input type="hidden" class="toprint" value="article-{{ lemma.id }}" />
+<input type="hidden" class="toprint" value="article-{{ artikel.id }}" />
 <a id="skapa-pdf">PDF&nbsp;version</a>
 <a id="skapa-odf">ODF&nbsp;version</a>
 <a id="skapa-docx">Word&nbsp;version</a>

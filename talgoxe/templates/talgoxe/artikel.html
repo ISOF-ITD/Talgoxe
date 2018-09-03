@@ -1,30 +1,27 @@
 {% spaceless %}
-<span class="SO">{% include "talgoxe/lemma.html" with artikel=lemma %}</span>
-{% with setspace as True %}
-    {% for segment in new_segments %}
+<span class="SO">{% include "talgoxe/lemma.html" %}</span>
+{% with True as setspace %}
+    {% for segment in artikel.fjädrar %}
         {% if not segment.isrightdelim %}
-        {% comment %}
-        {% if setspace and not segment.isrightdelim %}
-        {% endcomment %}
-            <span>⁠ ⁠</span> {% comment %} FIXME Funkar tydligen inte med LEFTDELIM {% endcomment %}
+        {% if segment.setspace %}
+            <span>⁠ ⁠</span>
         {% endif %}
-        {% comment %}
+        {% endif %}
         {% if segment.isleftdelim %}
-            [set setspace to False!]
+            {% firstof False True as setspace %}
         {% else %}
-            [comment set setspace to True]
+            {% firstof True False as setspace %}
         {% endif %}
-        {% endcomment %}
         {% if segment.ismoment and segment.display %}
             <span class="{{ segment.type }}">{{ segment.text.format }}</span>
         {% else %}
-            {% if segment.type.kod == 'ref' %}
-                <span class="{{ segment.type }}"><a href="{% url 'stickord' segment.text %}">{{ segment.text.format }}</a></span>
+            {% if segment.typ == 'REF' %}
+                <span class="{{ segment.typ }}"><a href="{% url 'stickord' segment.text %}">{{ segment.text.format }}</a></span>
             {% else %}
                 <span class="{{ segment.type }}">{{ segment.format }}</span>
             {% endif %}
         {% endif %}
     {% endfor %}
 {% endwith %}
-<span class="träff hidden" id="lemma-{{ lemma.id }}" />
+<span class="träff hidden" id="lemma-{{ artikel.id }}" /><!-- FIXME Kan egentligen leda till att få varje artikel två gånger när man skriver ut! -->
 {% endspaceless %}

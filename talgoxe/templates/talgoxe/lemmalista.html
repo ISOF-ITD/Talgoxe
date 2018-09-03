@@ -1,25 +1,18 @@
-{% if checkboxes %}<div id="lemmata-to-select"><button id="selectalla">Välj alla</button>{% endif %}
+{% if checkboxes %}<div id="lemmata-to-select">
+  <button id="selectalla">Välj alla</button>
+{% endif %}
 <ul>
-{% for lemma in lemmata %}
+{% for artikel in artiklar %}
     <li class="hidden nobullet">
-      {% if checkboxes %}
-      <input type="checkbox" name="select-{{ lemma.id }}" class="toselect" />
-      {% endif %}
-      <a href="{% url 'redigera' lemma.id %}" class="ordlistelement">{% include "talgoxe/lemma.html" with artikel=lemma %}</a>
+      {% if checkboxes %}<input type="checkbox" name="select-{{ artikel.id }}" class="toselect" />{% endif %}
+      <a href="{% url 'redigera' artikel.id %}" class="ordlistelement">{% include "talgoxe/lemma.html" %}</a>
     </li>
 {% endfor %}
 </ul>
-{% if checkboxes %}</div>{% endif %}
-{% if checkboxes %}
+{% if checkboxes %}</div>
 <div id="selected-lemmata">
 <button id="ta-bort-alla">Ta bort alla</button>
 <ul>
-{% comment %}
-{% for lemma in lemmata %}
-    <li id="li-selected-{{ lemma.id }}" class="hidden nobullet">{{ lemma.lemma }}{% if lemma.rank > 0 %}<sup>{{ lemma.rank }}</sup>{% endif %} <input type="checkbox" id="ta-bort-{{ lemma.id }}" class="ta-bort" /> Ta bort
-    </li>
-{% endfor %}
-{% endcomment %}
     <li class="hidden nobullet" id="lemma-0" />
   </ul>
   <input type="submit" value="Välja" action="{% url 'print_on_demand' %}">

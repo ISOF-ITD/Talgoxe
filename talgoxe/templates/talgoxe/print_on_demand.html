@@ -2,31 +2,10 @@
 
 {% include "talgoxe/user_summary.html" %}
 
-{% if redo %}
-<h2>Redo att skriva ut</h2>
-{% for lemma in lemmata %}
-    <input type="hidden" class="toprint" value="article-{{ lemma.id }}" />
-    {% include 'talgoxe/artikel.html' with lemma=lemma new_segments=lemma.new_segments %}
-    <br />
-{% endfor %}
-
-    <a id="skapa-pdf">Skapa PDF</a>
-
-    <a id="skapa-odf">Skapa ODF</a>
-    <a id="skapa-docx">Skapa Word</a>
-{% else %}
 <form method="POST">
 {% csrf_token %}
 {% include "talgoxe/ordlista.html" %}
 </p>
 </form>
-
-{% endif %}
-
-<!--
-<h2>Test</h2>
-{% load static %}
-<button><a href="{% static 'ord/sdl-utdrag.pdf' %}">klicka mig</a></button>
--->
 
 {% include "talgoxe/footer.html" %}

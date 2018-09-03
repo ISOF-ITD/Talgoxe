@@ -1,8 +1,8 @@
 {% include "talgoxe/header.html" %}
 
 <ul>
-{% for lemma in lemmata %}
-  <li class="nobullet"><a href="{% url 'redigera' lemma.id %}">{% include "talgoxe/lemma.html" with artikel=lemma %}</a></li>
+{% for artikel in artiklar %}
+  <li class="nobullet"><a href="{% url 'redigera' artikel.id %}">{% include "talgoxe/lemma.html" %}</a></li>
 {% endfor %}
 </ul>
 

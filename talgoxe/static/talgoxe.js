@@ -377,7 +377,7 @@ $(document).ready(function() {
     function createODF(element) {
       $(element).html("Förbereder&nbsp;ODF...");
       articles = collectArticles();
-      url = printableEndpoint('odf', articles);
+      url = printableEndpoint('odt', articles);
       $.get(url).done(function(link) {
         $(element).off('click');
         $(element).attr("href", link.trim());
