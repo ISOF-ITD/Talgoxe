@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import datetime
 from math import floor
-from os import chdir, popen, rename, environ
+from os import chdir, popen, rename, rmdir, environ
 from os.path import abspath, dirname, join
 from re import match, split
 from tempfile import mkdtemp, mktemp
@@ -79,7 +80,8 @@ class Artikel(models.Model):
             for bit in bits:
                 if bits.index(bit) > 0:
                     i += 1
-                    self.append_fjäder(Fjäder(self.get_spole(i)), True)
+                    if i < self.spole_set.count():
+                        self.append_fjäder(Fjäder(self.get_spole(i)), True)
                 if bit:
                     fjäder = Fjäder(huvudtyp, bit)
                     if self.preventnextspace and bits.index(bit) == 0:
@@ -120,6 +122,9 @@ class Artikel(models.Model):
         self.landskap = []
         while i < len(self.spolar()):
             spole = self.get_spole(i)
+            if spole.isgeo() and spole.text == "":
+                i += 1
+                continue
             if state == 'ALLMÄNT':
                 if spole.isgeo():
                     self.landskap = [Landskap(spole.text)]
@@ -361,7 +366,7 @@ class Landskap():
 
     def cmp(self, other):
         if self.abbrev in self.ordning and other.abbrev in self.ordning:
-            return cmp(self.ordning.index(self.abbrev), self.ordning.index(other.abbrev))
+            return self.cmp(self.ordning.index(self.abbrev), self.ordning.index(other.abbrev))
         else:
             return 0
 
@@ -425,6 +430,37 @@ class Exporter:
         self.start_document = initialisers[format]
         self.generate_paragraph = generators[format]
         self.save_document = savers[format]
+
+    def export_letter(self, letter):
+        self.dirname = mkdtemp('', 'SDLartikel')
+        self.filename = join(self.dirname, 'sdl.%s' % self.format)
+        self.start_document()
+        filename = letter + datetime.datetime.now().strftime("%Y%m%d") + '.' + self.format
+        artiklar = []
+        hel_bokstav = Artikel.objects.filter(lemma__startswith=letter)
+        artiklar += hel_bokstav
+        artiklar = sorted(artiklar, key=lambda artikel: (artikel.lemma, artikel.rang))
+        for artikel in artiklar:
+            artikel.collect()
+            self.generate_paragraph(artikel)
+        self.save_document()
+        staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
+        rename(self.filename, join(staticpath, filename))
+
+    # Create files, one file for each letter in the swedish alphabet.
+    def export_letters(self):
+        #letter = 'a'
+        #while letter <= 'z':
+        #    self.export_letter(letter)
+        #    letter = chr(ord(letter) + 1)
+        # letter = 'å'
+        # self.export_letter(letter)
+        letter = 'x'
+        self.export_letter(letter)
+        letter = 'ä'
+        self.export_letter(letter)
+        letter = 'ö'
+        self.export_letter(letter)
 
     def generate_pdf_paragraph(self, artikel):
         self.document.write("\\hskip-0.5em")
