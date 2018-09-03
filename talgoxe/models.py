@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import datetime
 from math import floor
-from os import chdir, popen, rename, rmdir, environ
+from os import chdir, popen, rename, environ
 from os.path import abspath, dirname, join
 from re import match, split
 from tempfile import mkdtemp, mktemp

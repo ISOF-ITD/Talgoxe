@@ -173,7 +173,7 @@ def print(request, format):
         raise UnsupportedFormat(format)
     template = loader.get_template('talgoxe/download_document.html')
     exporter = Exporter(format)
-    exporter.export_letters()
+    # exporter.export_letters()
     filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
     context = { 'filepath' : filepath }
 
