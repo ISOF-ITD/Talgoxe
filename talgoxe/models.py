@@ -9,6 +9,7 @@ from tempfile import mkdtemp, mktemp
 
 import ezodf
 import docx
+import sys
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -105,7 +106,7 @@ class Artikel(models.Model):
 
     def flush_landskap(self):
         sorted_landskap = sorted(self.landskap, key = Landskap.key)
-        print(list(map(lambda l: l.abbrev, sorted_landskap)))
+        # print(list(map(lambda l: l.abbrev, sorted_landskap)))
         for ls in sorted_landskap:
            fjäder = Fjäder(Typ.objects.get(kod = 'g'), ls.abbrev)
            if self.preventnextspace and sorted_landskap.index(ls) == 0:
@@ -148,6 +149,10 @@ class Artikel(models.Model):
         self.number_moments('M1')
         self.number_moments('M2')
         self.moments = { 'M1': [], 'M2': [] }
+
+    def collect2(self, spolar):
+        self.spolarna = spolar
+        self.collect()
 
     def update(self, post_data):
         order = post_data['order'].split(',')
@@ -236,7 +241,12 @@ class Segment(): # Fjäder!
         else:
             return self.text.strip()
 
+
+articleTypes = {}
+
+
 class Typ(models.Model):
+    # id = models.PrimaryKey()
     kod = models.CharField(max_length = 5)
     namn = models.CharField(max_length = 30)
     skapat = models.DateTimeField(auto_now_add = True)
@@ -253,13 +263,37 @@ class Typ(models.Model):
         out += (4 - len(out)) * '\xa0'
         return out
 
+class ArticleTypeManager:
+
+    @staticmethod
+    def GetType(id):
+        if len(articleTypes) == 0:
+            # Get all article types.
+            allArticleTypes = Typ.objects.all()
+            for articleType in allArticleTypes:
+                articleTypes[articleType.id] = articleType
+
+        # Get requested article type.
+        if articleTypes[id] != None:
+            return articleTypes[id]
+        else:
+            return None
+            # raise ValueError("No article type with id = " + str(id))
+
+
 class Spole(models.Model):
     text = models.CharField(max_length = 2000)
     pos = models.SmallIntegerField()
     artikel = models.ForeignKey(Artikel)
     typ = models.ForeignKey(Typ)
+    # typ_id = models.SmallIntegerField()
     skapat = models.DateTimeField(auto_now_add = True)
     uppdaterat = models.DateTimeField(auto_now = True)
+    #typ = ArticleTypeManager.GetType(typ_id)
+    #if hasattr(typ, 'id'):
+        #typ2 = ArticleTypeManager.GetType(typ.id)
+    # else:
+        # sys.stdout.print("Type " + )
 
     class Meta:
         ordering = ('pos',)
@@ -395,8 +429,8 @@ class Landskap():
                 landskap_per_del['Sveal'].append(landskap)
             else:
                 landskap_per_del['Norrl'].append(landskap)
-            print(landskap)
-        print(len(landskap_per_del['Götal']))
+            # print(landskap)
+        # print(len(landskap_per_del['Götal']))
         utskriftsform = []
         for landsdel, landskapen in landskap_per_del.items():
             if len(landskapen) >= antal_per_del[landsdel]:
@@ -432,30 +466,37 @@ class Exporter:
         self.save_document = savers[format]
 
     def export_letter(self, letter):
-        self.dirname = mkdtemp('', 'SDLartikel')
-        self.filename = join(self.dirname, 'sdl.%s' % self.format)
-        self.start_document()
-        filename = letter + datetime.datetime.now().strftime("%Y%m%d") + '.' + self.format
         artiklar = []
         hel_bokstav = Artikel.objects.filter(lemma__startswith=letter)
         artiklar += hel_bokstav
         artiklar = sorted(artiklar, key=lambda artikel: (artikel.lemma, artikel.rang))
-        for artikel in artiklar:
-            artikel.collect()
-            self.generate_paragraph(artikel)
-        self.save_document()
-        staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
-        rename(self.filename, join(staticpath, filename))
+        if len(artiklar) >= 1:
+            artikelIds = []
+            for artikel in artiklar:
+                artikelIds.append(artikel.id)
+            # spolar = Spole.objects.filter(artikel_id__in=artikelIds)
+            self.dirname = mkdtemp('', 'SDLartikel')
+            self.filename = join(self.dirname, 'sdl.%s' % self.format)
+            self.start_document()
+            filename = letter + datetime.datetime.now().strftime("%Y%m%d") + '.' + self.format
+            for artikel in artiklar:
+                # artikelspolar = spolar.filter(artikel_id=artikel.id).order_by('pos').asc();
+                # artikel.collect2(artikelspolar)
+                # artikel.collect2(spolar.filter(artikel_id=artikel.id))
+                artikel.collect()
+                self.generate_paragraph(artikel)
+            self.save_document()
+            staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
+            rename(self.filename, join(staticpath, filename))
 
     # Create files, one file for each letter in the swedish alphabet.
     def export_letters(self):
-        #letter = 'a'
-        #while letter <= 'z':
-        #    self.export_letter(letter)
-        #    letter = chr(ord(letter) + 1)
-        # letter = 'å'
-        # self.export_letter(letter)
-        letter = 'x'
+        #self.export_letter('f')
+        letter = 'a'
+        while letter <= 'z':
+            self.export_letter(letter)
+            letter = chr(ord(letter) + 1)
+        letter = 'å'
         self.export_letter(letter)
         letter = 'ä'
         self.export_letter(letter)
@@ -630,12 +671,15 @@ class Exporter:
         self.dirname = mkdtemp('', 'SDLartikel')
         self.filename = join(self.dirname, 'sdl.%s' % self.format)
         self.start_document()
-        if len(ids) == 1:
+        if (len(ids) == 0) or (len(ids) == 1 and ids[0] == ''):
+            # Nothing to do. No articles should be output to file.
+            index = 0
+        elif len(ids) == 1:
             artikel = Artikel.objects.get(id = ids[0])
             artikel.collect()
             self.generate_paragraph(artikel)
             filename = '%s-%s.%s' % (ids[0], artikel.lemma, self.format)
-        else:
+        elif len(ids) > 1:
             filename = 'sdl-utdrag.%s' % self.format # FIXME Unikt namn osv.
             for id in ids:
                 artikel = Artikel.objects.get(id = id)
@@ -646,3 +690,4 @@ class Exporter:
         rename(self.filename, join(staticpath, filename))
 
         return join('ord', filename)
+
