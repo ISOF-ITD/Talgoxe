@@ -19,7 +19,7 @@ if VERSION[1] == 7 or VERSION[1] == 8:
 else:
     from django.urls import reverse
 
-from talgoxe.models import Spole, Artikel, Typ, Exporter, UnsupportedFormat
+from talgoxe.models import Spole, Artikel, Exporter, UnsupportedFormat
 
 def render_template(request, template, context):
     if VERSION[1] == 7:

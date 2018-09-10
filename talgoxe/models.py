@@ -48,14 +48,17 @@ class Artikel(models.Model):
         else:
             return None
 
+
     def spolar(self):
         if not hasattr(self, 'spolarna'):
-            if self.spole_set.count() == 0: # Artikeln skapades just, vi fejkar en första spole
-                ok = Typ.objects.get(kod = 'OK')
+            allSpolar = self.spole_set.all();
+            if len(allSpolar) == 0: # Artikeln skapades just, vi fejkar en första spole
+                # ok = Typ.objects.get(kod = 'OK')
+                ok = ArticleTypeManager.getTypeByAbbreviation('OK')
                 spole = Spole(typ = ok, text = '', pos = 0)
                 self.spolarna = [spole]
             else:
-                self.spolarna = self.spole_set.all()
+                self.spolarna = allSpolar
 
         return self.spolarna
 
@@ -77,7 +80,7 @@ class Artikel(models.Model):
         if len(bits) == 1:
             self.append_fjäder(spole)
         else:
-            huvudtyp = spole.typ
+            huvudtyp = spole.getType()
             for bit in bits:
                 if bits.index(bit) > 0:
                     i += 1
@@ -108,7 +111,8 @@ class Artikel(models.Model):
         sorted_landskap = sorted(self.landskap, key = Landskap.key)
         # print(list(map(lambda l: l.abbrev, sorted_landskap)))
         for ls in sorted_landskap:
-           fjäder = Fjäder(Typ.objects.get(kod = 'g'), ls.abbrev)
+           # fjäder = Fjäder(Typ.objects.get(kod = 'g'), ls.abbrev)
+           fjäder = Fjäder(ArticleTypeManager.getTypeByAbbreviation('g'), ls.abbrev)
            if self.preventnextspace and sorted_landskap.index(ls) == 0:
                fjäder.preventspace = True
            self.append_fjäder(fjäder, True)
@@ -161,14 +165,17 @@ class Artikel(models.Model):
             self.lemma = stickord
             self.save()
         d = [[post_data['type-' + key].strip(), post_data['value-' + key].strip()] for key in order]
-        gtype = Typ.objects.get(kod = 'g')
+        #gtype = Typ.objects.get(kod = 'g')
+        gtype = ArticleTypeManager.getTypeByAbbreviation('g')
         for i in range(len(d)):
             bit = d[i]
             try:
-                type = Typ.objects.get(kod = bit[0])
+                # type = Typ.objects.get(kod = bit[0])
+                type = ArticleTypeManager.getTypeByAbbreviation(bit[0])
             except ObjectDoesNotExist: # FIXME Do something useful!
 # TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
-                type = Typ.objects.get(kod = 'OG')
+                # type = Typ.objects.get(kod = 'OG')
+                type = ArticleTypeManager.getTypeByAbbreviation('OG')
             text = bit[1]
             if type == gtype and text.title() in Landskap.short_abbrev.keys():
               text = Landskap.short_abbrev[text.title()]
@@ -241,10 +248,6 @@ class Segment(): # Fjäder!
         else:
             return self.text.strip()
 
-
-articleTypes = {}
-
-
 class Typ(models.Model):
     # id = models.PrimaryKey()
     kod = models.CharField(max_length = 5)
@@ -263,55 +266,77 @@ class Typ(models.Model):
         out += (4 - len(out)) * '\xa0'
         return out
 
+articleTypesByAbbreviation = {}
+articleTypesById = {}
+
 class ArticleTypeManager:
 
     @staticmethod
-    def GetType(id):
-        if len(articleTypes) == 0:
+    def getTypeByAbbreviation(abbreviation):
+        ArticleTypeManager.initTypes()
+
+        # Get requested article type.
+        if articleTypesByAbbreviation[abbreviation] != None:
+            return articleTypesByAbbreviation[abbreviation]
+        else:
+            raise ObjectDoesNotExist("No article type with abbreviation = " + abbreviation)
+
+    @staticmethod
+    def getTypeById(id):
+        ArticleTypeManager.initTypes()
+
+        # Get requested article type.
+        if articleTypesById[id] != None:
+            return articleTypesById[id]
+        else:
+            raise ObjectDoesNotExist("No article type with id = " + str(id))
+
+    @staticmethod
+    def initTypes():
+        if len(articleTypesById) == 0:
             # Get all article types.
             allArticleTypes = Typ.objects.all()
             for articleType in allArticleTypes:
-                articleTypes[articleType.id] = articleType
-
-        # Get requested article type.
-        if articleTypes[id] != None:
-            return articleTypes[id]
-        else:
-            return None
-            # raise ValueError("No article type with id = " + str(id))
-
+                articleTypesByAbbreviation[articleType.kod] = articleType
+                articleTypesById[articleType.id] = articleType
 
 class Spole(models.Model):
     text = models.CharField(max_length = 2000)
     pos = models.SmallIntegerField()
     artikel = models.ForeignKey(Artikel)
     typ = models.ForeignKey(Typ)
-    # typ_id = models.SmallIntegerField()
     skapat = models.DateTimeField(auto_now_add = True)
     uppdaterat = models.DateTimeField(auto_now = True)
-    #typ = ArticleTypeManager.GetType(typ_id)
-    #if hasattr(typ, 'id'):
-        #typ2 = ArticleTypeManager.GetType(typ.id)
-    # else:
-        # sys.stdout.print("Type " + )
+    # typ_id = models.SmallIntegerField()
 
     class Meta:
         ordering = ('pos',)
 
     def __str__(self):
-        return self.typ.__str__() + ' ' + self.text
+        return self.getType().__str__() + ' ' + self.text
 
     def webstyle(self):
-        self.webstyles[self.typ.__str__()]
+        self.webstyles[self.getType().__str__()]
 
     def printstyle(self):
-        self.printstyles[self.typ.__str__()]
+        self.printstyles[self.getType().__str__()]
 
     def isgeo(self):
-        return self.typ.isgeo()
+        return self.getType().isgeo()
+        # return self.typ.isgeo()
 
     def isleftdelim(self):
-        return self.typ.kod.upper() in ['VR', 'VH']
+        return self.getType().kod.upper() in ['VR', 'VH']
+
+    def getType(self):
+        #if hasattr(typ, 'typ_id'):
+        # typ2 = ArticleTypeManager.getType(typ_id)
+        # if hasattr(typ, 'id'):
+        # typ2 = ArticleTypeManager.getType(typ.id)
+        # else:
+        # sys.stdout.print("Type " + )
+        return ArticleTypeManager.getTypeById(self.typ_id)
+
 
 class Fjäder:
     def __init__(self, spole, text = None):
@@ -320,7 +345,8 @@ class Fjäder:
             self.typ = spole.kod.upper()
             self.text = text.strip()
         else:
-            self.typ = spole.typ.kod.upper()
+            # self.typ = spole.typ.kod.upper()
+            self.typ = spole.getType().kod.upper()
             self.text = spole.text.strip()
         self.preventspace = False
 
@@ -491,17 +517,18 @@ class Exporter:
 
     # Create files, one file for each letter in the swedish alphabet.
     def export_letters(self):
-        #self.export_letter('f')
-        letter = 'a'
-        while letter <= 'z':
-            self.export_letter(letter)
-            letter = chr(ord(letter) + 1)
-        letter = 'å'
-        self.export_letter(letter)
-        letter = 'ä'
-        self.export_letter(letter)
-        letter = 'ö'
-        self.export_letter(letter)
+        self.export_letter('y')
+        self.export_letter('ö')
+        #letter = 'a'
+        #while letter <= 'z':
+        #    self.export_letter(letter)
+        #    letter = chr(ord(letter) + 1)
+        #letter = 'å'
+        #self.export_letter(letter)
+        #letter = 'ä'
+        #self.export_letter(letter)
+        #letter = 'ö'
+        #self.export_letter(letter)
 
     def generate_pdf_paragraph(self, artikel):
         self.document.write("\\hskip-0.5em")
@@ -680,9 +707,11 @@ class Exporter:
             self.generate_paragraph(artikel)
             filename = '%s-%s.%s' % (ids[0], artikel.lemma, self.format)
         elif len(ids) > 1:
+            artiklar = []
+            hel_bokstav = Artikel.objects.filter(id__in=ids)
+            artiklar += hel_bokstav
             filename = 'sdl-utdrag.%s' % self.format # FIXME Unikt namn osv.
-            for id in ids:
-                artikel = Artikel.objects.get(id = id)
+            for artikel in artiklar:
                 artikel.collect()
                 self.generate_paragraph(artikel)
         self.save_document()
