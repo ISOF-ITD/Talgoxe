@@ -5,11 +5,10 @@ from math import floor
 from os import chdir, popen, rename, environ
 from os.path import abspath, dirname, join
 from re import match, split
-from tempfile import mkdtemp, mktemp
+from tempfile import mkdtemp
 
 import ezodf
 import docx
-import sys
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -53,7 +52,6 @@ class Artikel(models.Model):
         if not hasattr(self, 'spolarna'):
             allSpolar = self.spole_set.all();
             if len(allSpolar) == 0: # Artikeln skapades just, vi fejkar en första spole
-                # ok = Typ.objects.get(kod = 'OK')
                 ok = ArticleTypeManager.getTypeByAbbreviation('OK')
                 spole = Spole(typ = ok, text = '', pos = 0)
                 self.spolarna = [spole]
@@ -84,7 +82,7 @@ class Artikel(models.Model):
             for bit in bits:
                 if bits.index(bit) > 0:
                     i += 1
-                    if i < self.spole_set.count():
+                    if i < len(self.spolar()):
                         self.append_fjäder(Fjäder(self.get_spole(i)), True)
                 if bit:
                     fjäder = Fjäder(huvudtyp, bit)
@@ -111,7 +109,6 @@ class Artikel(models.Model):
         sorted_landskap = sorted(self.landskap, key = Landskap.key)
         # print(list(map(lambda l: l.abbrev, sorted_landskap)))
         for ls in sorted_landskap:
-           # fjäder = Fjäder(Typ.objects.get(kod = 'g'), ls.abbrev)
            fjäder = Fjäder(ArticleTypeManager.getTypeByAbbreviation('g'), ls.abbrev)
            if self.preventnextspace and sorted_landskap.index(ls) == 0:
                fjäder.preventspace = True
@@ -165,16 +162,13 @@ class Artikel(models.Model):
             self.lemma = stickord
             self.save()
         d = [[post_data['type-' + key].strip(), post_data['value-' + key].strip()] for key in order]
-        #gtype = Typ.objects.get(kod = 'g')
         gtype = ArticleTypeManager.getTypeByAbbreviation('g')
         for i in range(len(d)):
             bit = d[i]
             try:
-                # type = Typ.objects.get(kod = bit[0])
                 type = ArticleTypeManager.getTypeByAbbreviation(bit[0])
             except ObjectDoesNotExist: # FIXME Do something useful!
 # TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
-                # type = Typ.objects.get(kod = 'OG')
                 type = ArticleTypeManager.getTypeByAbbreviation('OG')
             text = bit[1]
             if type == gtype and text.title() in Landskap.short_abbrev.keys():
@@ -249,7 +243,6 @@ class Segment(): # Fjäder!
             return self.text.strip()
 
 class Typ(models.Model):
-    # id = models.PrimaryKey()
     kod = models.CharField(max_length = 5)
     namn = models.CharField(max_length = 30)
     skapat = models.DateTimeField(auto_now_add = True)
@@ -307,7 +300,6 @@ class Spole(models.Model):
     typ = models.ForeignKey(Typ)
     skapat = models.DateTimeField(auto_now_add = True)
     uppdaterat = models.DateTimeField(auto_now = True)
-    # typ_id = models.SmallIntegerField()
 
     class Meta:
         ordering = ('pos',)
@@ -329,12 +321,6 @@ class Spole(models.Model):
         return self.getType().kod.upper() in ['VR', 'VH']
 
     def getType(self):
-        #if hasattr(typ, 'typ_id'):
-        # typ2 = ArticleTypeManager.getType(typ_id)
-        # if hasattr(typ, 'id'):
-        # typ2 = ArticleTypeManager.getType(typ.id)
-        # else:
-        # sys.stdout.print("Type " + )
         return ArticleTypeManager.getTypeById(self.typ_id)
 
 
@@ -345,7 +331,6 @@ class Fjäder:
             self.typ = spole.kod.upper()
             self.text = text.strip()
         else:
-            # self.typ = spole.typ.kod.upper()
             self.typ = spole.getType().kod.upper()
             self.text = spole.text.strip()
         self.preventspace = False
@@ -492,24 +477,33 @@ class Exporter:
         self.save_document = savers[format]
 
     def export_letter(self, letter):
+        # Get data from database.
         artiklar = []
         hel_bokstav = Artikel.objects.filter(lemma__startswith=letter)
         artiklar += hel_bokstav
         artiklar = sorted(artiklar, key=lambda artikel: (artikel.lemma, artikel.rang))
+
         if len(artiklar) >= 1:
             artikelIds = []
             for artikel in artiklar:
                 artikelIds.append(artikel.id)
-            # spolar = Spole.objects.filter(artikel_id__in=artikelIds)
+            spoles = []
+            # spolar = Spole.objects.filter(artikel_id__in=ids).order_by('pos').asc()
+            spolar = Spole.objects.filter(artikel_id__in=artikelIds)
+            spoles += spolar
+            articleSpoles = {}
+            for id in artikelIds:
+                articleSpoles[id] = []
+            for spole in spoles:
+                articleSpoles[spole.artikel_id].append(spole)
+
+            # Create file with article information.
             self.dirname = mkdtemp('', 'SDLartikel')
             self.filename = join(self.dirname, 'sdl.%s' % self.format)
             self.start_document()
             filename = letter + datetime.datetime.now().strftime("%Y%m%d") + '.' + self.format
             for artikel in artiklar:
-                # artikelspolar = spolar.filter(artikel_id=artikel.id).order_by('pos').asc();
-                # artikel.collect2(artikelspolar)
-                # artikel.collect2(spolar.filter(artikel_id=artikel.id))
-                artikel.collect()
+                artikel.collect2(articleSpoles[artikel.id])
                 self.generate_paragraph(artikel)
             self.save_document()
             staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
@@ -517,18 +511,16 @@ class Exporter:
 
     # Create files, one file for each letter in the swedish alphabet.
     def export_letters(self):
-        self.export_letter('y')
-        self.export_letter('ö')
-        #letter = 'a'
-        #while letter <= 'z':
-        #    self.export_letter(letter)
-        #    letter = chr(ord(letter) + 1)
-        #letter = 'å'
-        #self.export_letter(letter)
-        #letter = 'ä'
-        #self.export_letter(letter)
-        #letter = 'ö'
-        #self.export_letter(letter)
+        letter = 'a'
+        while letter <= 'z':
+            self.export_letter(letter)
+            letter = chr(ord(letter) + 1)
+        letter = 'å'
+        self.export_letter(letter)
+        letter = 'ä'
+        self.export_letter(letter)
+        letter = 'ö'
+        self.export_letter(letter)
 
     def generate_pdf_paragraph(self, artikel):
         self.document.write("\\hskip-0.5em")
@@ -707,12 +699,24 @@ class Exporter:
             self.generate_paragraph(artikel)
             filename = '%s-%s.%s' % (ids[0], artikel.lemma, self.format)
         elif len(ids) > 1:
+            # Get data from database.
             artiklar = []
             hel_bokstav = Artikel.objects.filter(id__in=ids)
             artiklar += hel_bokstav
+            spoles = []
+            # spolar = Spole.objects.filter(artikel_id__in=ids).order_by('pos').asc()
+            spolar = Spole.objects.filter(artikel_id__in=ids)
+            spoles += spolar
+            articleSpoles = {}
+            for id in ids:
+                articleSpoles[int(id)] = []
+            for spole in spoles:
+                articleSpoles[spole.artikel_id].append(spole)
+
+            # Write article information to file.
             filename = 'sdl-utdrag.%s' % self.format # FIXME Unikt namn osv.
             for artikel in artiklar:
-                artikel.collect()
+                artikel.collect2(articleSpoles[artikel.id])
                 self.generate_paragraph(artikel)
         self.save_document()
         staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
