@@ -54,9 +54,9 @@ def create(request):
 
 @login_required
 def redigera(request, id):
-    AccessManager.check_edit_permission(request.user)
     method = request.META['REQUEST_METHOD']
     if method == 'POST':
+        AccessManager.check_edit_permission(request.user)
         artikel = Artikel.objects.get(id = id)
         artikel.update(request.POST)
 

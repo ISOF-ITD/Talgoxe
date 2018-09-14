@@ -30,7 +30,7 @@ class AccessManager:
         AccessManager.init_access_control()
 
         # Check if user has permission to edit articles.
-        if edit_users[user.username] == None:
+        if not (user.username in edit_users):
             # User is not in group 'TalgoxenEdit'.
             raise PermissionDenied(f"User {user.first_name} {user.last_name} ({user.username}) does not have edit permission.")
 
