@@ -19,7 +19,7 @@ if VERSION[1] == 7 or VERSION[1] == 8:
 else:
     from django.urls import reverse
 
-from talgoxe.models import Spole, Artikel, Exporter, UnsupportedFormat
+from talgoxe.models import AccessManager, Spole, Artikel, Exporter, UnsupportedFormat
 
 def render_template(request, template, context):
     if VERSION[1] == 7:
@@ -36,6 +36,7 @@ def index(request):
 
 @login_required # FIXME Något om användaren faktiskt är utloggad?
 def create(request):
+    AccessManager.check_edit_permission(request.user)
     nylemma = request.POST['nylemma'].strip()
     företrädare = Artikel.objects.filter(lemma = nylemma)
     maxrang = företrädare.aggregate(Max('rang'))['rang__max']
@@ -53,6 +54,7 @@ def create(request):
 
 @login_required
 def redigera(request, id):
+    AccessManager.check_edit_permission(request.user)
     method = request.META['REQUEST_METHOD']
     if method == 'POST':
         artikel = Artikel.objects.get(id = id)

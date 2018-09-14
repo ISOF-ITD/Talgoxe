@@ -1,5 +1,9 @@
 html {
-  background-color: #ccf;
+  /* Production */
+  background-color:#ccf;
+
+  /* Test */
+  /* background-color:lightyellow; */
 }
 
 body {

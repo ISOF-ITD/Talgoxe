@@ -7,18 +7,40 @@ from os.path import abspath, dirname, join
 from re import match, split
 from tempfile import mkdtemp
 import logging
+from django.contrib.auth.models import User
 
 import ezodf
 import docx
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db import models
 
 # FIXME Superscripts!
 
 class UnsupportedFormat(Exception):
   pass
+
+edit_users = {}
+
+class AccessManager:
+
+    @staticmethod
+    def check_edit_permission(user):
+        AccessManager.init_access_control()
+
+        # Check if user has permission to edit articles.
+        if edit_users[user.username] == None:
+            # User is not in group 'TalgoxenEdit'.
+            raise PermissionDenied(f"User {user.first_name} {user.last_name} ({user.username}) does not have edit permission.")
+
+    @staticmethod
+    def init_access_control():
+        if len(edit_users) == 0:
+            # Get all users with edit permission.
+            editors = User.objects.filter(groups__name='TalgoxenEdit')
+            for editor in editors:
+                edit_users[editor.username] = editor
 
 class Artikel(models.Model):
     class Meta:
@@ -53,7 +75,7 @@ class Artikel(models.Model):
         if not hasattr(self, 'spolarna'):
             allSpolar = self.spole_set.all();
             if len(allSpolar) == 0: # Artikeln skapades just, vi fejkar en första spole
-                ok = ArticleTypeManager.getTypeByAbbreviation('OK')
+                ok = ArticleTypeManager.get_type_by_abbreviation('OK')
                 spole = Spole(typ = ok, text = '', pos = 0)
                 self.spolarna = [spole]
             else:
@@ -110,7 +132,7 @@ class Artikel(models.Model):
         sorted_landskap = sorted(self.landskap, key = Landskap.key)
         sorted_landskap = Landskap.reduce_landskap(sorted_landskap)
         for ls in sorted_landskap:
-           fjäder = Fjäder(ArticleTypeManager.getTypeByAbbreviation('g'), ls.abbrev)
+           fjäder = Fjäder(ArticleTypeManager.get_type_by_abbreviation('g'), ls.abbrev)
            if self.preventnextspace and sorted_landskap.index(ls) == 0:
                fjäder.preventspace = True
            self.append_fjäder(fjäder, True)
@@ -163,14 +185,14 @@ class Artikel(models.Model):
             self.lemma = stickord
             self.save()
         d = [[post_data['type-' + key].strip(), post_data['value-' + key].strip()] for key in order]
-        gtype = ArticleTypeManager.getTypeByAbbreviation('g')
+        gtype = ArticleTypeManager.get_type_by_abbreviation('g')
         for i in range(len(d)):
             bit = d[i]
             try:
-                type = ArticleTypeManager.getTypeByAbbreviation(bit[0])
+                type = ArticleTypeManager.get_type_by_abbreviation(bit[0])
             except ObjectDoesNotExist: # FIXME Do something useful!
 # TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
-                type = ArticleTypeManager.getTypeByAbbreviation('OG')
+                type = ArticleTypeManager.get_type_by_abbreviation('OG')
             text = bit[1]
             if type == gtype and text.title() in Landskap.short_abbrev.keys():
               text = Landskap.short_abbrev[text.title()]
@@ -260,39 +282,39 @@ class Typ(models.Model):
         out += (4 - len(out)) * '\xa0'
         return out
 
-articleTypesByAbbreviation = {}
-articleTypesById = {}
+article_types_by_abbreviation = {}
+article_types_by_id = {}
 
 class ArticleTypeManager:
 
     @staticmethod
-    def getTypeByAbbreviation(abbreviation):
-        ArticleTypeManager.initTypes()
+    def get_type_by_abbreviation(abbreviation):
+        ArticleTypeManager.init_types()
 
         # Get requested article type.
-        if articleTypesByAbbreviation[abbreviation] != None:
-            return articleTypesByAbbreviation[abbreviation]
+        if article_types_by_abbreviation[abbreviation] != None:
+            return article_types_by_abbreviation[abbreviation]
         else:
             raise ObjectDoesNotExist("No article type with abbreviation = " + abbreviation)
 
     @staticmethod
-    def getTypeById(id):
-        ArticleTypeManager.initTypes()
+    def get_type_by_id(id):
+        ArticleTypeManager.init_types()
 
         # Get requested article type.
-        if articleTypesById[id] != None:
-            return articleTypesById[id]
+        if article_types_by_id[id] != None:
+            return article_types_by_id[id]
         else:
             raise ObjectDoesNotExist("No article type with id = " + str(id))
 
     @staticmethod
-    def initTypes():
-        if len(articleTypesById) == 0:
+    def init_types():
+        if len(article_types_by_id) == 0:
             # Get all article types.
             allArticleTypes = Typ.objects.all()
             for articleType in allArticleTypes:
-                articleTypesByAbbreviation[articleType.kod] = articleType
-                articleTypesById[articleType.id] = articleType
+                article_types_by_abbreviation[articleType.kod] = articleType
+                article_types_by_id[articleType.id] = articleType
 
 class Spole(models.Model):
     text = models.CharField(max_length = 2000)
@@ -322,7 +344,7 @@ class Spole(models.Model):
         return self.getType().kod.upper() in ['VR', 'VH']
 
     def getType(self):
-        return ArticleTypeManager.getTypeById(self.typ_id)
+        return ArticleTypeManager.get_type_by_id(self.typ_id)
 
 
 class Fjäder:
