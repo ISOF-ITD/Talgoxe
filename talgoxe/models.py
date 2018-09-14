@@ -185,25 +185,25 @@ class Artikel(models.Model):
             self.lemma = stickord
             self.save()
         d = [[post_data['type-' + key].strip(), post_data['value-' + key].strip()] for key in order]
-        gtype = ArticleTypeManager.get_type_by_abbreviation('g')
+        gtype = Typ.objects.get(kod='g')
         for i in range(len(d)):
             bit = d[i]
             try:
-                type = ArticleTypeManager.get_type_by_abbreviation(bit[0])
-            except ObjectDoesNotExist: # FIXME Do something useful!
-# TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
-                type = ArticleTypeManager.get_type_by_abbreviation('OG')
+                type = Typ.objects.get(kod=bit[0])
+            except ObjectDoesNotExist:  # FIXME Do something useful!
+                # TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
+                type = Typ.objects.get(kod='OG')
             text = bit[1]
             if type == gtype and text.title() in Landskap.short_abbrev.keys():
-              text = Landskap.short_abbrev[text.title()]
+                text = Landskap.short_abbrev[text.title()]
             data = self.get_spole(i)
             if data:
                 data.typ = type
                 data.text = text
                 data.save()
             else:
-                Spole.objects.create(artikel = self, typ = type, pos = i, text = text)
-        self.spole_set.filter(pos__gte = len(d)).delete()
+                Spole.objects.create(artikel=self, typ=type, pos=i, text=text)
+        self.spole_set.filter(pos__gte=len(d)).delete()
 
 class Segment(): # Fjäder!
     def __init__(self, type, text = None):
@@ -292,7 +292,7 @@ class ArticleTypeManager:
         ArticleTypeManager.init_types()
 
         # Get requested article type.
-        if article_types_by_abbreviation[abbreviation] != None:
+        if abbreviation in article_types_by_abbreviation:
             return article_types_by_abbreviation[abbreviation]
         else:
             raise ObjectDoesNotExist("No article type with abbreviation = " + abbreviation)
@@ -302,7 +302,7 @@ class ArticleTypeManager:
         ArticleTypeManager.init_types()
 
         # Get requested article type.
-        if article_types_by_id[id] != None:
+        if id in article_types_by_id:
             return article_types_by_id[id]
         else:
             raise ObjectDoesNotExist("No article type with id = " + str(id))
