@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 
 import ezodf
 import docx
+from shutil import copyfile
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -70,12 +71,11 @@ class Artikel(models.Model):
         else:
             return None
 
-
     def spolar(self):
         if not hasattr(self, 'spolarna'):
             allSpolar = self.spole_set.all();
             if len(allSpolar) == 0: # Artikeln skapades just, vi fejkar en första spole
-                ok = ArticleTypeManager.get_type_by_abbreviation('OK')
+                ok = Typ.objects.get(kod = 'OK')
                 spole = Spole(typ = ok, text = '', pos = 0)
                 self.spolarna = [spole]
             else:
@@ -751,7 +751,8 @@ class Exporter:
         #logger.info(f"Articles has been written to file.")
         self.save_document()
         staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
-        rename(self.filename, join(staticpath, filename))
+        copyfile(self.filename, join(staticpath, filename))
+        # rename(self.filename, join(staticpath, filename))
         #outputFilename = join(staticpath, filename)
         #logger.info(f"Rename file {self.filename} to {outputFilename}.")
 
