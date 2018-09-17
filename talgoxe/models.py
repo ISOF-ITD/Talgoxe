@@ -6,7 +6,6 @@ from os import chdir, popen, rename, environ
 from os.path import abspath, dirname, join
 from re import match, split
 from tempfile import mkdtemp
-import logging
 from django.contrib.auth.models import User
 
 import ezodf
@@ -130,6 +129,14 @@ class Artikel(models.Model):
 
     def flush_landskap(self):
         sorted_landskap = sorted(self.landskap, key = Landskap.key)
+        if len(sorted_landskap) > 1:
+            # Remove province duplicates.
+            index = 0;
+            while index < (len(sorted_landskap) - 1):
+                if sorted_landskap[index].abbrev == sorted_landskap[index + 1].abbrev:
+                    del sorted_landskap[index]
+                else:
+                    index += 1
         sorted_landskap = Landskap.reduce_landskap(sorted_landskap)
         for ls in sorted_landskap:
            fjäder = Fjäder(ArticleTypeManager.get_type_by_abbreviation('g'), ls.abbrev)
@@ -710,17 +717,12 @@ class Exporter:
         style.font.size = docx.shared.Pt(size)
 
     def export(self, ids):
-        #logger = logging.getLogger('django')
-        #logger.info("Start file creation")
         self.dirname = mkdtemp('', 'SDLartikel')
-        #logger.info(f"Temporary directory = {self.dirname}")
         self.filename = join(self.dirname, 'sdl.%s' % self.format)
-        #logger.info(f"Temporary filename = {self.filename}")
         self.start_document()
-        #logger.info(f"Start document")
         if (len(ids) == 0) or (len(ids) == 1 and ids[0] == ''):
             # Nothing to do. No articles should be output to file.
-            index = 0
+            pass
         elif len(ids) == 1:
             artikel = Artikel.objects.get(id = ids[0])
             artikel.collect()
@@ -728,7 +730,6 @@ class Exporter:
             filename = '%s-%s.%s' % (ids[0], artikel.lemma, self.format)
         elif len(ids) > 1:
             # Get data from database.
-            #logger.info(f"Get articles from database.")
             artiklar = []
             hel_bokstav = Artikel.objects.filter(id__in=ids)
             artiklar += hel_bokstav
@@ -744,17 +745,12 @@ class Exporter:
 
             # Write article information to file.
             filename = 'sdl-utdrag.%s' % self.format # FIXME Unikt namn osv.
-            #logger.info(f"Write articles to file {filename}.")
             for artikel in artiklar:
                 artikel.collect2(articleSpoles[artikel.id])
                 self.generate_paragraph(artikel)
-        #logger.info(f"Articles has been written to file.")
         self.save_document()
         staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
         copyfile(self.filename, join(staticpath, filename))
-        # rename(self.filename, join(staticpath, filename))
-        #outputFilename = join(staticpath, filename)
-        #logger.info(f"Rename file {self.filename} to {outputFilename}.")
 
         return join('ord', filename)
 
