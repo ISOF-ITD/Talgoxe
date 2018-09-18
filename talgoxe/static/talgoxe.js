@@ -34,7 +34,8 @@ $(document).ready(function() {
 
     function removeArticle(event) {
         articleName = $('.article-name').attr('value')
-        articleId = $('.handle-article').attr('action').substring(18, 100)
+        articleId = $('.handle-article').attr('action').substring(22, 100)
+        /* locale test articleId = $('.handle-article').attr('action').substring(18, 100) */
         if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
             $('.handle-article').attr('action','/talgoxe/delete/' + articleId);
         }
