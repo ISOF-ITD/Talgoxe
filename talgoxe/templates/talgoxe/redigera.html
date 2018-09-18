@@ -12,10 +12,12 @@
 <div id="twospalter">
 <div id="inmatning">
 <h2>Inmatning</h2>
-<form action="{% url 'redigera' artikel.id %}" method="POST">
+<form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
 {% csrf_token %}
 <ul>
-<li>SO&nbsp;&nbsp;: <input type="text" name="stickord" value="{{ artikel.lemma }}" size="16"> <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1"></li>
+<li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
+          <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
+          <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"></li>
 {% for d in artikel.spolar %}
     <li id="data-{{ d.pos }}">
       {% spaceless %}

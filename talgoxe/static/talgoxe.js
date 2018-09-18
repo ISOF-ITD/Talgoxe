@@ -32,9 +32,22 @@ $(document).ready(function() {
         $(this).after('<input type="hidden" name="order" value="' + ids.join() + '">');
     }
 
+    function removeArticle(event) {
+        articleName = $('.article-name').attr('value')
+        articleId = $('.handle-article').attr('action').substring(18, 100)
+        if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
+            $('.handle-article').attr('action','/talgoxe/delete/' + articleId);
+        }
+        else {
+            event.preventDefault();
+        }
+    }
+
     $('.add-row').click(addRow);
 
     $('.remove-row').click(removeRow);
+
+    $('.remove-article').click(removeArticle);
 
     function removeRow(event) {
         event.preventDefault();

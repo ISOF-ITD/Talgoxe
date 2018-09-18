@@ -73,6 +73,14 @@ def redigera(request, id):
     return render_template(request, template, context)
 
 @login_required
+def delete(request, id):
+    AccessManager.check_edit_permission(request.user)
+    Spole.objects.filter(artikel_id = id).delete()
+    Artikel.objects.get(id = id).delete()
+
+    return HttpResponseRedirect(reverse('index'))
+
+@login_required
 def artikel_efter_stickord(request, stickord):
     artiklar = Artikel.objects.filter(lemma = stickord)
     # TODO: 0!
