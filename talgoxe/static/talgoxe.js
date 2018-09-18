@@ -37,7 +37,8 @@ $(document).ready(function() {
         articleId = $('.handle-article').attr('action').substring(22, 100)
         /* locale test articleId = $('.handle-article').attr('action').substring(18, 100) */
         if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
-            $('.handle-article').attr('action','/talgoxe/delete/' + articleId);
+            $('.handle-article').attr('action','/sdl/talgoxe/delete/' + articleId);
+            /* locale test $('.handle-article').attr('action','/sdl/talgoxe/delete/' + articleId); */
         }
         else {
             event.preventDefault();
