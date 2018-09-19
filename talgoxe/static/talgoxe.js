@@ -34,11 +34,11 @@ $(document).ready(function() {
 
     function removeArticle(event) {
         articleName = $('.article-name').attr('value')
-        articleId = $('.handle-article').attr('action').substring(22, 100)
-        /* locale test articleId = $('.handle-article').attr('action').substring(18, 100) */
+        action = $('.handle-article').attr('action')
+        articleId = action.substring(action.lastIndexOf("/") + 1, 100)
+        action = action.replace("redigera", "delete")
         if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
-            $('.handle-article').attr('action','/sdl/talgoxe/delete/' + articleId);
-            /* locale test $('.handle-article').attr('action','/sdl/talgoxe/delete/' + articleId); */
+            $('.handle-article').attr('action', action);
         }
         else {
             event.preventDefault();
