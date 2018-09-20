@@ -205,6 +205,7 @@ class Artikel(models.Model):
                 text = Landskap.short_abbrev[text.title()]
             data = self.get_spole(i)
             if data and (data.artikel_id != None):
+                data.pos = i
                 data.typ = type
                 data.text = text
                 data.save()
