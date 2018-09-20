@@ -204,7 +204,7 @@ class Artikel(models.Model):
             if type == gtype and text.title() in Landskap.short_abbrev.keys():
                 text = Landskap.short_abbrev[text.title()]
             data = self.get_spole(i)
-            if data:
+            if data and (data.artikel_id != None):
                 data.typ = type
                 data.text = text
                 data.save()

@@ -3,36 +3,23 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 from re import match
 
-from django import VERSION
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.template import loader, Context, RequestContext
+from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
 
-if VERSION[1] == 7 or VERSION[1] == 8:
-    from django.core.urlresolvers import reverse
-    from django.template import RequestContext
-    from django.views.decorators.csrf import csrf_protect
-else:
-    from django.urls import reverse
-
-from talgoxe.models import AccessManager, Spole, Artikel, Exporter, UnsupportedFormat
-
-def render_template(request, template, context):
-    if VERSION[1] == 7:
-        return HttpResponse(template.render(RequestContext(request, context))) # Django version 1.7
-    else:
-        return HttpResponse(template.render(context, request)) # Django version 1.11
+from talgoxe.models import AccessManager, Artikel, Exporter, Spole, UnsupportedFormat
 
 @login_required
 def index(request):
     template = loader.get_template('talgoxe/index.html')
     artiklar = Artikel.objects.all()
     context = { 'artiklar' : artiklar, 'pagetitle' : "Talgoxe – Svenskt dialektlexikon", 'checkboxes' : False }
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 @login_required # FIXME Något om användaren faktiskt är utloggad?
 def create(request):
@@ -70,7 +57,7 @@ def redigera(request, id):
         'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
     }
 
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def delete(request, id):
@@ -91,7 +78,7 @@ def artikel_efter_stickord(request, stickord):
         context = {
             'artiklar' : artiklar
         }
-        return render_template(request, template, context)
+        return HttpResponse(template.render(context, request))
 
 @login_required
 def search(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
@@ -120,7 +107,7 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
     if 'q' in request.GET:
         söksträng = request.GET['q']
     else:
-        return render_template(request, template, { 'q' : 'NULL', 'uri' : uri })
+        return HttpResponse(template.render({ 'q' : 'NULL', 'uri' : uri }, request))
     if 'sök-överallt' in request.GET and request.GET['sök-överallt'] != 'None':
         sök_överallt = request.GET['sök-överallt']
     else:
@@ -142,7 +129,7 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
             'sök_överallt' : sök_överallt,
         }
 
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def artikel(request, id):
@@ -151,7 +138,7 @@ def artikel(request, id):
     artikel.collect()
     context = { 'artikel' : artikel, 'format' : format }
 
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def print_on_demand(request):
@@ -175,7 +162,7 @@ def print_on_demand(request):
         bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
         context = { 'artiklar' : artiklar, 'checkboxes' : True, 'bokstäver' : bokstäver, 'pagetitle' : '%d artiklar' % artiklar.count() }
 
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def print(request, format):
@@ -187,9 +174,9 @@ def print(request, format):
     filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
     context = { 'filepath' : filepath }
 
-    return render_template(request, template, context)
+    return HttpResponse(template.render(context, request))
 
 def easylogout(request):
     logout(request)
     template = loader.get_template("talgoxe/logout.html")
-    return render_template(request, template, { })
+    return HttpResponse(template.render({ }, request))
