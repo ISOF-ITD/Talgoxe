@@ -84,6 +84,7 @@ def artikel_efter_stickord(request, stickord):
 def search(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
     method = request.META['REQUEST_METHOD']
     if method == 'POST':
+        AccessManager.check_edit_permission(request.user)
         ordning = []
         for artikel in request.POST:
             if match('^artikel-', artikel):
@@ -116,11 +117,18 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
         sök_överallt_eller_inte = 'söker överallt'
     else:
         sök_överallt_eller_inte = 'söker bara uppslagsord'
-    artiklar = list(Artikel.objects.filter(lemma__contains = söksträng))
+    artiklar = []
+    search_stick_words = Artikel.objects.filter(lemma__contains = söksträng)
+    artiklar += search_stick_words
     if sök_överallt:
         spolar = Spole.objects.filter(text__contains = söksträng).select_related('artikel')
         artiklar += [spole.artikel for spole in spolar]
-    artiklar = sorted(list(OrderedDict.fromkeys(artiklar)), key = lambda artikel: (artikel.lemma, artikel.rang))
+        articleIds = []
+        for article in artiklar:
+            articleIds.append(article.id)
+        artiklar = []
+        search_article_field_content = Artikel.objects.filter(id__in = articleIds)
+        artiklar += search_article_field_content
     context = {
             'q' : söksträng,
             'artiklar' : artiklar,
@@ -154,7 +162,6 @@ def print_on_demand(request):
             elif bdata:
                 hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
                 artiklar += hel_bokstav
-        artiklar = sorted(artiklar, key = lambda artikel: (artikel.lemma, artikel.rang)) # TODO Make unique
         context = { 'artiklar' : artiklar, 'redo' : True, 'titel' : 'Ditt urval på %d artiklar' % len(artiklar), 'pagetitle' : '%d artiklar' % len(artiklar) }
         template = loader.get_template('talgoxe/search.html')
     elif method == 'GET':

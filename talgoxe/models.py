@@ -512,14 +512,12 @@ class Exporter:
         artiklar = []
         hel_bokstav = Artikel.objects.filter(lemma__startswith=letter)
         artiklar += hel_bokstav
-        artiklar = sorted(artiklar, key=lambda artikel: (artikel.lemma, artikel.rang))
 
         if len(artiklar) >= 1:
             artikelIds = []
             for artikel in artiklar:
                 artikelIds.append(artikel.id)
             spoles = []
-            # spolar = Spole.objects.filter(artikel_id__in=ids).order_by('pos').asc()
             spolar = Spole.objects.filter(artikel_id__in=artikelIds)
             spoles += spolar
             articleSpoles = {}
