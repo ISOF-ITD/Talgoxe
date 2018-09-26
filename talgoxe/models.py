@@ -44,9 +44,10 @@ class AccessManager:
 
 class Artikel(models.Model):
     class Meta:
-        ordering = ('lemma', 'rang')
+        ordering = ('lemma_sortable', 'rang')
 
     lemma = models.CharField(max_length = 100)
+    lemma_sortable = models.CharField(max_length = 100)
     rang = models.SmallIntegerField()
     skapat = models.DateTimeField(auto_now_add = True)
     uppdaterat = models.DateTimeField(auto_now = True)
@@ -69,6 +70,19 @@ class Artikel(models.Model):
             return self.spolar()[i] # Man kan missa vissa värden av pos, så .get(pos = i) funkar inte. Se t.ex. 1öden (id 3012683), spole saknas för pos = 2. AR 2018-06-03.
         else:
             return None
+
+    @staticmethod
+    def get_lemma_sortable(lemma):
+        lemma_sortable = lemma.lower()
+        lemma_sortable = lemma_sortable.replace('Å', 'å')
+        lemma_sortable = lemma_sortable.replace('Ä', 'ä')
+        lemma_sortable = lemma_sortable.replace('Ö', 'ö')
+        lemma_sortable = lemma_sortable.replace('?', '')
+        lemma_sortable = lemma_sortable.replace(',', '')
+        lemma_sortable = lemma_sortable.replace('(', '')
+        lemma_sortable = lemma_sortable.replace(')', '')
+        lemma_sortable = lemma_sortable.replace('-', '')
+        return lemma_sortable
 
     def spolar(self):
         if not hasattr(self, 'spolarna'):
@@ -190,6 +204,7 @@ class Artikel(models.Model):
         stickord = post_data['stickord']
         if self.lemma != stickord:
             self.lemma = stickord
+            self.lemma_sortable = Artikel.get_lemma_sortable(stickord)
             self.save()
         d = [[post_data['type-' + key].strip(), post_data['value-' + key].strip()] for key in order]
         gtype = Typ.objects.get(kod='g')
@@ -212,6 +227,15 @@ class Artikel(models.Model):
             else:
                 Spole.objects.create(artikel=self, typ=type, pos=i, text=text)
         self.spole_set.filter(pos__gte=len(d)).delete()
+
+
+    @staticmethod
+    def update_lemma_sortable():
+        articles = Artikel.objects.all()
+        for article in articles:
+            article.lemma_sortable = Artikel.get_lemma_sortable(article.lemma)
+            article.save()
+
 
 class Segment(): # Fjäder!
     def __init__(self, type, text = None):

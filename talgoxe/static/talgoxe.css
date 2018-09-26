@@ -1,9 +1,9 @@
 html {
   /* Production */
-  background-color:#ccf;
+  /* background-color:#ccf; */
 
   /* Test */
-  /* background-color:lightyellow; */
+  background-color:lightyellow;
 }
 
 body {

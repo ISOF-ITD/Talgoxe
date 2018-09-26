@@ -273,11 +273,11 @@ $(document).ready(function() {
         }
 
         $('#sökstrang').html(string);
-        regexp = new RegExp('^' + string);
+        regexp = new RegExp('^' + string.replace(/[-?,()]/g, "").toLowerCase());
         var nbhits = 0;
         $(".ordlistelement").each(function(i, childElement) {
             element = $(childElement).parent();
-            if ($(childElement).html().replace(/.*<\/sup>\s*/, '').match(regexp)) { element.show(); nbhits++; }
+            if ($(childElement).attr("value").match(regexp)) { element.show(); nbhits++; }
             else element.hide();
         });
         if (nbhits == 0) $('#searching-feedback').show();

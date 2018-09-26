@@ -36,7 +36,7 @@ def create(request):
         rang = 2
     elif maxrang > 0:
         rang = maxrang + 1
-    artikel = Artikel.objects.create(lemma = nylemma, rang = rang)
+    artikel = Artikel.objects.create(lemma = nylemma, lemma_sortable = Artikel.get_lemma_sortable(nylemma), rang = rang)
     return HttpResponseRedirect(reverse('redigera', args = (artikel.id,)))
 
 @login_required
@@ -118,7 +118,7 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
     else:
         sök_överallt_eller_inte = 'söker bara uppslagsord'
     artiklar = []
-    search_stick_words = Artikel.objects.filter(lemma__contains = söksträng)
+    search_stick_words = Artikel.objects.filter(lemma_sortable__contains = Artikel.get_lemma_sortable(söksträng))
     artiklar += search_stick_words
     if sök_överallt:
         spolar = Spole.objects.filter(text__contains = söksträng).select_related('artikel')
@@ -150,6 +150,7 @@ def artikel(request, id):
 
 @login_required
 def print_on_demand(request):
+    # Artikel.update_lemma_sortable()
     method = request.META['REQUEST_METHOD']
     template = loader.get_template('talgoxe/print_on_demand.html')
     if method == 'POST':

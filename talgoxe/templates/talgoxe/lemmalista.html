@@ -5,7 +5,7 @@
 {% for artikel in artiklar %}
     <li class="hidden nobullet">
       {% if checkboxes %}<input type="checkbox" name="select-{{ artikel.id }}" class="toselect" />{% endif %}
-      <a href="{% url 'redigera' artikel.id %}" class="ordlistelement">{% include "talgoxe/lemma.html" %}</a>
+      <a href="{% url 'redigera' artikel.id %}" class="ordlistelement" value="{{ artikel.lemma_sortable }}">{% include "talgoxe/lemma.html" %}</a>
     </li>
 {% endfor %}
 </ul>
