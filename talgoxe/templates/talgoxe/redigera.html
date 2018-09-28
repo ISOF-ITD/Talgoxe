@@ -9,45 +9,53 @@
 </form>
 {% include 'talgoxe/ordlista.html' %}
 </div>
-<div id="twospalter">
-<div id="inmatning">
-<h2>Inmatning</h2>
-<form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
-{% csrf_token %}
-<ul>
-<li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
-          <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
-          <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"></li>
-{% for d in artikel.spolar %}
-    <li id="data-{{ d.pos }}">
-      {% spaceless %}
-      <input type="text" size="3" name="type-{{ d.pos }}" value="{{ d.typ.format }}" id="type-{{ d.pos }}" class="d-type">
-      <textarea {% if d.typ.kod == 'm1' or d.typ.kod == 'm2' %}class="hidden"{% endif %} rows="1" style="width: 55%" name="value-{{ d.pos }}" id="value-{{ d.pos }}" class="d-value">{{ d.text }}</textarea>
-      <button class="add-row" id="add-row-{{ d.pos }}" tabindex="-1"><strong>+</strong></button>
-      <button class="remove-row" id="remove-row-{{ d.pos }}" tabindex="-1"><strong>-</strong></button>
-      <button class="move-row-up" id="row-up-{{ d.pos }}" tabindex="-1"><strong>↑</strong></button>
-      <button class="move-row-down" id="row-down-{{ d.pos }}" tabindex="-1"><strong>↓</strong></button>
-      {% if d.typ.kod == 'm1' or d.typ.kod == 'm2' %}
-      <button class="move-moment-up" id="moment-up-{{ d.pos }}" tabindex="-1"><strong>⇑</strong></button>
-      <button class="move-moment-down" id="moment-down-{{ d.pos }}" tabindex="-1"><strong>⇓</strong></button>
-      {# Andra möjligheter: ⇧ U+21E7 ⇩ U+21E9 #}
-      {% endif %}
-      <input type="submit" class="spara-och-ladda-om" value="💾" tabindex="-1" />
-      {% endspaceless %}
-    </li>
-{% endfor %}
-</ul>
-</form>
-</div>
-<div id="artikel">
-<h2>Artikel</h2>
-<p>{% include 'talgoxe/artikel.html' %}</p>
-<input type="hidden" class="toprint" value="article-{{ artikel.id }}" />
-<a id="skapa-pdf">PDF&nbsp;version</a>
-<a id="skapa-odf">ODF&nbsp;version</a>
-<a id="skapa-docx">Word&nbsp;version</a>
-</div>
-</div>
+<table id="twospalter">
+  <tr>
+    <td id="inmatning2">
+        <div id="inmatning">
+            <h2>Inmatning</h2>
+            <form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
+            {% csrf_token %}
+            <ul id="input-control">
+            <li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
+                        <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
+                        <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"></li>
+            </ul>
+            <ul class="lemma-list">
+            {% for d in artikel.spolar %}
+                <li id="data-{{ d.pos }}">
+                  {% spaceless %}
+                    <input type="text" size="3" name="type-{{ d.pos }}" value="{{ d.typ.format }}" id="type-{{ d.pos }}" class="d-type">
+                    <textarea {% if d.typ.kod == 'm1' or d.typ.kod == 'm2' %}class="hidden"{% endif %} rows="1" style="width: 55%" name="value-{{ d.pos }}" id="value-{{ d.pos }}" class="d-value">{{ d.text }}</textarea>
+                    <button class="add-row" id="add-row-{{ d.pos }}" tabindex="-1"><strong>+</strong></button>
+                    <button class="remove-row" id="remove-row-{{ d.pos }}" tabindex="-1"><strong>-</strong></button>
+                    <button class="move-row-up" id="row-up-{{ d.pos }}" tabindex="-1"><strong>↑</strong></button>
+                    <button class="move-row-down" id="row-down-{{ d.pos }}" tabindex="-1"><strong>↓</strong></button>
+                    {% if d.typ.kod == 'm1' or d.typ.kod == 'm2' %}
+                    <button class="move-moment-up" id="moment-up-{{ d.pos }}" tabindex="-1"><strong>⇑</strong></button>
+                    <button class="move-moment-down" id="moment-down-{{ d.pos }}" tabindex="-1"><strong>⇓</strong></button>
+                    {# Andra möjligheter: ⇧ U+21E7 ⇩ U+21E9 #}
+                    {% endif %}
+                    <input type="submit" class="spara-och-ladda-om" value="💾" tabindex="-1" />
+                    {% endspaceless %}
+                </li>
+            {% endfor %}
+            </ul>
+        </form>
+        </div>
+    </td>
+    <td id="artikel2">
+        <div id="artikel">
+            <h2>Artikel</h2>
+            <p>{% include 'talgoxe/artikel.html' %}</p>
+            <input type="hidden" class="toprint" value="article-{{ artikel.id }}" />
+            <a id="skapa-pdf">PDF&nbsp;version</a>
+            <a id="skapa-odf">ODF&nbsp;version</a>
+            <a id="skapa-docx">Word&nbsp;version</a>
+        </div>
+    </td>
+  </tr>
+</table>
 
 <script>
     $('#spara').click(function() {
