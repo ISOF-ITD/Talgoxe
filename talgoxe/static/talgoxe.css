@@ -16,7 +16,7 @@ body {
   overflow-y: scroll;
   overflow-x: hidden;
   border: 1px solid black;
-  width: 39%;
+  width: 41%;
   height: 300px;
   margin-left: 2%;
   margin-right: 2%;
@@ -33,7 +33,7 @@ body {
 
 #inmatning {
   border: 1px solid black;
-  width: 57%;
+  width: 55%;
   height: 300px;
   margin-right: 2%;
   font-family: 'Courier';
