@@ -11,14 +11,41 @@ body {
     margin: 8px;
 }
 
-/* Tack https://stackoverflow.com/a/11752273/46495 :-) */
-#inmatning {
-  width: 55%;
-  height: 75%;
+#artikel {
+  vertical-align: top;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  border: 1px solid black;
+  width: 39%;
+  height: 300px;
+  margin-left: 2%;
   margin-right: 2%;
   font-family: 'Courier';
-  display: inline;
+  background: white;
   padding: 4px;
+}
+
+#artikel a {
+  margin: 4px;
+  border: 1px solid black;
+  background: lightgrey;
+}
+
+#inmatning {
+  border: 1px solid black;
+  width: 57%;
+  height: 300px;
+  margin-right: 2%;
+  font-family: 'Courier';
+}
+
+#inmatning li:nth-child(2n) {
+  background: green;
+}
+
+#inmatning li {
+  list-style-type: none;
+  margin-left: -3px;
 }
 
 #input-control {
@@ -27,41 +54,6 @@ body {
 
 #input-control input {
     margin: 2px;
-}
-
-#inmatning h2 {
-  margin-block-start: 4px;
-  margin-block-end: 4px;
-}
-
-#inmatning2 {
-  border: 1px solid black;
-  width: 55%;
-  height: 300px;
-  margin-right: 2%;
-  font-family: 'Courier';
-}
-
-#artikel2 {
-  overflow-y: scroll;
-  overflow-x: hidden;
-  border: 1px solid black;
-  width: 41%;
-  height: 300px;
-  margin-left: 2%;
-  margin-right: 2%;
-  font-family: 'Courier';
-  background: white;
-}
-
-#inmatning li {
-  list-style-type: none;
-  margin-left: -3px;
-}
-
-#twospalter {
-  width: 100%;
-  height: 500px;
 }
 
 .lemma-list {
@@ -78,27 +70,18 @@ body {
   padding-inline-start: 0px;
 }
 
-#artikel {
-  vertical-align: top;
-  width: 100%;
-  height: 100%;
-  display: block;
-  padding: 4px;
-  /*
-  border: 1px solid black;
-  left: 59%;
-  float: left;
-  position: fixed;
-  left: 59%;
-  top: 0px;
-  position: fixed;
-  */
+.select-field {
+  margin-left: 4px;
 }
 
-#artikel a {
-  margin: 4px;
-  border: 1px solid black;
-  background: lightgrey;
+#twospalter {
+  width: 100%;
+  height: 500px;
+}
+
+#twospalter h2 {
+  margin-block-start: 4px;
+  margin-block-end: 4px;
 }
 
 #ordlista {
@@ -260,10 +243,6 @@ a#skapa-odf, a#skapa-docx {
   cursor: pointer;
   text-decoration: none;
   color: initial;
-}
-
-#inmatning li:nth-child(2n) {
-  background: green;
 }
 
 .d-type, .add-row, .remove-row, .move-row-up, .move-row-down, .move-moment-up, .move-moment-down, .spara-och-ladda-om {

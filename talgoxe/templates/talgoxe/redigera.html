@@ -11,10 +11,9 @@
 </div>
 <table id="twospalter">
   <tr>
-    <td id="inmatning2">
-        <div id="inmatning">
-            <h2>Inmatning</h2>
-            <form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
+    <td id="inmatning">
+        <h2>Inmatning</h2>
+        <form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
             {% csrf_token %}
             <ul id="input-control">
             <li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
@@ -36,23 +35,20 @@
                     <button class="move-moment-down" id="moment-down-{{ d.pos }}" tabindex="-1"><strong>⇓</strong></button>
                     {# Andra möjligheter: ⇧ U+21E7 ⇩ U+21E9 #}
                     {% endif %}
-                    <input type="submit" class="spara-och-ladda-om" value="💾" tabindex="-1" />
+                    <input type="checkbox" class="select-field"/>
                     {% endspaceless %}
                 </li>
             {% endfor %}
             </ul>
         </form>
-        </div>
     </td>
-    <td id="artikel2">
-        <div id="artikel">
-            <h2>Artikel</h2>
-            <p>{% include 'talgoxe/artikel.html' %}</p>
-            <input type="hidden" class="toprint" value="article-{{ artikel.id }}" />
-            <a id="skapa-pdf">PDF&nbsp;version</a>
-            <a id="skapa-odf">ODF&nbsp;version</a>
-            <a id="skapa-docx">Word&nbsp;version</a>
-        </div>
+    <td id="artikel">
+        <h2>Artikel</h2>
+        <p>{% include 'talgoxe/artikel.html' %}</p>
+        <input type="hidden" class="toprint" value="article-{{ artikel.id }}" />
+        <a id="skapa-pdf">PDF&nbsp;version</a>
+        <a id="skapa-odf">ODF&nbsp;version</a>
+        <a id="skapa-docx">Word&nbsp;version</a>
     </td>
   </tr>
 </table>
