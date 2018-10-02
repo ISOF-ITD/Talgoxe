@@ -1,5 +1,9 @@
 var lastLemma;
+var copyString;
 
+function isEmpty(val){
+    return (val === undefined || val == null || val.length <= 0);
+}
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
         lastId = $('.add-row').last()[0].id;
@@ -47,6 +51,8 @@ $(document).ready(function() {
 
     $('.add-row').click(addRow);
 
+    $('.copy-rows').click(copyRows);
+
     $('.remove-row').click(removeRow);
 
     $('.remove-article').click(removeArticle);
@@ -73,6 +79,33 @@ $(document).ready(function() {
         element = $(event.currentTarget).parent();
         prev = element.prev();
         prev.first().before(element.first());
+    }
+
+    function copyRows(event) {
+        if (!isEmpty(event)) {
+            event.preventDefault();
+        }
+        selectedRows = $(".lemma-list input:checked").parent();
+        if (selectedRows.length == 0) {
+            alert("Inga rader har markerats!");
+        }
+        else {
+            copyString = '';
+            $(".lemma-list input:checked").parent().each(
+                function() {
+                    type = $(this).children('.d-type');
+                    lemma = $(this).children('.d-value');
+                    if (copyString != '') {
+                        copyString = copyString + '@';
+                    }
+                    copyString = copyString + type[0].value + '@' + lemma[0].value;
+                }
+            )
+            alert("copyString = " + copyString);
+            $(".clipboard")[0].value = copyString;
+            // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
+            // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
+        }
     }
 
     function moveDown(event) {

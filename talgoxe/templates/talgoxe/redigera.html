@@ -15,10 +15,12 @@
         <h2>Inmatning</h2>
         <form class="handle-article" action="{% url 'redigera' artikel.id %}" method="POST">
             {% csrf_token %}
+            <input type="hidden" name="clipboard" class="clipboard" value="">
             <ul id="input-control">
             <li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
                         <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
                         <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"></li>
+                        <input type="submit" value="Kopiera" class="copy-rows" tabindex="-1"></li>
             </ul>
             <ul class="lemma-list">
             {% for d in artikel.spolar %}
