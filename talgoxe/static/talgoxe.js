@@ -101,8 +101,8 @@ $(document).ready(function() {
                     copyString = copyString + type[0].value + '@' + lemma[0].value;
                 }
             )
-            alert("copyString = " + copyString);
             $(".clipboard")[0].value = copyString;
+            // alert("copyString = " + copyString);
             // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
             // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
         }
