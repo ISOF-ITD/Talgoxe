@@ -17,7 +17,7 @@ $(document).ready(function() {
         dpos = event.currentTarget.id.replace('add-row-', '');
         counter++
         newRowId = counter
-        $('#data-' + dpos).after('<li id="data-' + counter + '"><input type="text" size="3" name="type-' + counter + '" id="type-' + counter + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + counter + '" id="value-' + counter + '" class="d-value" /><button class="add-row" id="add-row-' + counter + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + counter + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + counter + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + counter + '" tabindex="-1"><strong>↓</strong></button><input type="submit" id="spara-och-ladda-om-' + counter + '" class="spara-och-ladda-om" value="💾" tabindex="-1" /></li>');
+        $('#data-' + dpos).after('<li id="data-' + counter + '"><input type="text" size="3" name="type-' + counter + '" id="type-' + counter + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + counter + '" id="value-' + counter + '" class="d-value" /><button class="add-row" id="add-row-' + counter + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + counter + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + counter + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + counter + '" tabindex="-1"><strong>↓</strong></button><input type="checkbox" class="select-field" tabindex="-1" /></li>');
         $('#add-row-' + counter).click(addRow);
         $('#remove-row-' + counter).click(removeRow);
         $('#type-' + counter).change(checkType);
@@ -53,6 +53,8 @@ $(document).ready(function() {
 
     $('.copy-rows').click(copyRows);
 
+    $('.cut-rows').click(cutRows);
+
     $('.remove-row').click(removeRow);
 
     $('.remove-article').click(removeArticle);
@@ -82,9 +84,12 @@ $(document).ready(function() {
     }
 
     function copyRows(event) {
-        if (!isEmpty(event)) {
-            event.preventDefault();
-        }
+        event.preventDefault();
+        copySelectedRows();
+        $(".lemma-list input:checked").prop( "checked", false );
+    }
+
+    function copySelectedRows() {
         selectedRows = $(".lemma-list input:checked").parent();
         if (selectedRows.length == 0) {
             alert("Inga rader har markerats!");
@@ -106,6 +111,12 @@ $(document).ready(function() {
             // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
             // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
         }
+    }
+
+    function cutRows(event) {
+        event.preventDefault();
+        copySelectedRows();
+        $(".lemma-list input:checked").parent().remove();
     }
 
     function moveDown(event) {
