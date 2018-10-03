@@ -55,6 +55,8 @@ $(document).ready(function() {
 
     $('.cut-rows').click(cutRows);
 
+    $('.paste-rows').click(pasteRows);
+
     $('.remove-row').click(removeRow);
 
     $('.remove-article').click(removeArticle);
@@ -117,6 +119,38 @@ $(document).ready(function() {
         event.preventDefault();
         copySelectedRows();
         $(".lemma-list input:checked").parent().remove();
+    }
+
+    function pasteRows(event) {
+        event.preventDefault();
+        selectedRows = $(".lemma-list input:checked").parent();
+        if (selectedRows.length == 0) {
+            alert("Markera var raderna ska klistras in!");
+        }
+        else {
+            rowsString = $(".clipboard")[0].value;
+            rowItems = rowsString.split("@");
+            if (isEmpty(rowsString)) {
+                alert("Finns inga rader att klistra in!");
+            }
+            else {
+                index = 0;
+                row = $(".lemma-list input:checked").first().parent();
+                $(row).children('.d-type').val(rowItems[index]);
+                index = index + 1;
+                $(row).children('.d-value').val(rowItems[index]);
+                index = index + 1;
+                while (index < rowItems.length){
+                    $(row).children('.add-row').trigger('click');
+                    row = $(row).next();
+                    $(row).children('.d-type').val(rowItems[index]);
+                    index = index + 1;
+                    $(row).children('.d-value').val(rowItems[index]);
+                    index = index + 1;
+                }
+            }
+            $(".lemma-list input:checked").prop( "checked", false );
+       }
     }
 
     function moveDown(event) {
