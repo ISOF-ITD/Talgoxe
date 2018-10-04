@@ -39,6 +39,14 @@ body {
   font-family: 'Courier';
 }
 
+.d-value {
+  font-family: 'Courier';
+}
+
+.handle-article {
+  font-family: 'Arial';
+}
+
 #inmatning li:nth-child(2n) {
   background: green;
 }
@@ -247,6 +255,7 @@ a#skapa-odf, a#skapa-docx {
 }
 
 .d-type, .add-row, .remove-row, .move-row-up, .move-row-down, .move-moment-up, .move-moment-down, .spara-och-ladda-om, .select-field {
+  font-family: 'Arial';
   vertical-align: top;
 }
 
