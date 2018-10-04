@@ -6,7 +6,7 @@ from re import match
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader, Context, RequestContext
 from django.urls import reverse
@@ -148,8 +148,23 @@ def artikel(request, id):
 
     return HttpResponse(template.render(context, request))
 
+clipboards = {}
+
+@login_required
+def clipboard(request):
+    userName = request.user.username;
+    copyString = request.POST.get("clipboard", None)
+    clipboards[userName] = copyString;
+    data = {
+        'clipboardUpdated': True
+    }
+    return JsonResponse(data);
+
 @login_required
 def print_on_demand(request):
+    if (clipboards == None):
+        artiklar = []
+
     # Artikel.update_lemma_sortable()
     method = request.META['REQUEST_METHOD']
     template = loader.get_template('talgoxe/print_on_demand.html')

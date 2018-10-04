@@ -6,6 +6,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.index, name = 'index'),
+    url('clipboard', views.clipboard, name = 'clipboard'),
     url('create', views.create, name = 'create'),
     url(r'^delete/(?P<id>\d+)$', views.delete, name = 'delete'),
     url(r'^redigera/(?P<id>\d+)$', views.redigera, name = 'redigera'),

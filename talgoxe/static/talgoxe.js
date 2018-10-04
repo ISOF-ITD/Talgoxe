@@ -109,7 +109,28 @@ $(document).ready(function() {
                 }
             )
             $(".clipboard")[0].value = copyString;
-            // alert("copyString = " + copyString);
+
+/*
+            copyStringJson = '{ "clipboard": "' + copyString + '" }';
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                     //if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        alert("csrftoken set in call = " + csrftoken);
+                    //}
+                }
+            });
+            alert("csrftoken = " + csrftoken);
+            $.post(
+                '/talgoxe/clipboard',
+                copyStringJson,
+                function(result) {
+                    alert("Urklipp har uppdaterats på servern.");
+                }
+            );
+            alert("copyString = " + copyStringJson);
+*/
             // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
             // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
         }
