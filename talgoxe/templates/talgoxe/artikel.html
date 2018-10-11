@@ -16,7 +16,7 @@
             <span class="{{ segment.type }}">{{ segment.text.format }}</span>
         {% else %}
             {% if segment.typ == 'REF' %}
-                <span class="{{ segment.typ }}"><a href="{% url 'stickord' segment.text %}">{{ segment.text.format }}</a></span>
+                <span class="{{ segment.typ }}"><a class="article-link" href="{% url 'stickord' segment.text %}">{{ segment.text.format }}</a></span>
             {% else %}
                 <span class="{{ segment.type }}">{{ segment.format }}</span>
             {% endif %}

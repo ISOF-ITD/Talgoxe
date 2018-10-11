@@ -25,10 +25,16 @@ body {
   padding: 4px;
 }
 
-#artikel a {
-  margin: 4px;
-  border: 1px solid black;
-  background: lightgrey;
+.print-document {
+    background: lightgrey;
+    border: 1px solid black;
+    margin: 4px;
+}
+
+.article-link {
+    background: white;
+    border: 0px;
+    margin: 4px;
 }
 
 .d-type {
