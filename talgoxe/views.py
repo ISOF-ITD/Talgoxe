@@ -51,10 +51,16 @@ def redigera(request, id):
     artiklar = Artikel.objects.all() # Anm. Svensk alfabetisk ordning verkar funka på frigg-test! Locale?
     artikel = Artikel.objects.get(id = id)
     artikel.collect()
+    username = request.user.username
+    clipboard = ''
+    if (username in clipboards):
+        clipboard = clipboards[username]
+
     context = {
         'artikel': artikel,
         'artiklar': artiklar,
         'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
+        'clipboard': clipboard
     }
 
     return HttpResponse(template.render(context, request))
@@ -153,8 +159,15 @@ clipboards = {}
 @login_required
 def clipboard(request):
     userName = request.user.username;
-    copyString = request.POST.get("clipboard", None)
-    clipboards[userName] = copyString;
+    # TODO: There should be a better way to get clipboard information from request.
+    items = request.POST.items()
+    clipboardJson = None
+    for item in items:
+        clipboardJson = item[0];
+        clipboardJson = clipboardJson.split('"')
+        break;
+    clipboards[userName] = clipboardJson[1];
+
     data = {
         'clipboardUpdated': True
     }
@@ -162,9 +175,6 @@ def clipboard(request):
 
 @login_required
 def print_on_demand(request):
-    if (clipboards == None):
-        artiklar = []
-
     # Artikel.update_lemma_sortable()
     method = request.META['REQUEST_METHOD']
     template = loader.get_template('talgoxe/print_on_demand.html')

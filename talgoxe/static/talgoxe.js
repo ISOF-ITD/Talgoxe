@@ -110,27 +110,27 @@ $(document).ready(function() {
             )
             $(".clipboard")[0].value = copyString;
 
-/*
-            copyStringJson = '{ "clipboard": "' + copyString + '" }';
+            // Get clipboard in Json format.
+            copyStringJson = '{ clipboard: "' + copyString + '" }';
+
+            // Add token that confirms login to AJAX request.
             var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
             $.ajaxSetup({
                 beforeSend: function(xhr, settings) {
-                     //if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        alert("csrftoken set in call = " + csrftoken);
-                    //}
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
             });
-            alert("csrftoken = " + csrftoken);
+
+            // Send clipboard to server.
             $.post(
                 '/talgoxe/clipboard',
-                copyStringJson,
-                function(result) {
-                    alert("Urklipp har uppdaterats på servern.");
-                }
+                copyStringJson //,
+                // function(result) {
+                //     alert("Urklipp har uppdaterats på servern.");
+                //}
             );
-            alert("copyString = " + copyStringJson);
-*/
+
+            // alert("copyString = " + copyStringJson);
             // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
             // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
         }
