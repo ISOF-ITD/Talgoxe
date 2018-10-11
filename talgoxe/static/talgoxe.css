@@ -53,23 +53,23 @@ body {
   font-family: 'Arial';
 }
 
+#input-control input {
+    margin: 2px;
+}
 #inmatning li:nth-child(2n) {
   background: green;
 }
 
 #inmatning li {
-  list-style-type: none;
-  margin-left: -3px;
+    list-style-type: none;
+    margin-left: -3px;
+    font-size: 13px;
 }
 
 #input-control {
     margin-block-start: 2px;
     margin-block-end: 2px;
     padding-inline-start: 4px;
-}
-
-#input-control input {
-    margin: 2px;
 }
 
 .lemma-list {
@@ -281,3 +281,5 @@ a#skapa-odf, a#skapa-docx {
 #visa-alla, #visa-alla-text {
   cursor: pointer;
 }
+
+
