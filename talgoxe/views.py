@@ -57,8 +57,8 @@ def redigera(request, id):
     clipboard = ''
     if username in clipboards:
         clipboard = clipboards[username]
-    else:
-        clipboard = f'User {username} is not in clipboard.'
+    #else:
+        #clipboard = f'User {username} is not in clipboard.'
 
     context = {
         'artikel': artikel,
@@ -163,12 +163,12 @@ def clipboard(request):
     userName = request.user.username
     # TODO: There should be a better way to get clipboard information from request.
     items = request.POST.items()
-    #clipboardJson = None
-    #for item in items:
-        #clipboardJson = item[0];
-        #clipboardJson = clipboardJson.split('"')
-        #break;
-    clipboards[userName] = userName
+    clipboardJson = None
+    for item in items:
+        clipboardJson = item[0];
+        clipboardJson = clipboardJson.split('"')
+        break;
+    clipboards[userName] = clipboardJson[1]
 
     #items = request.POST.items()
     #clipboardJson = None
