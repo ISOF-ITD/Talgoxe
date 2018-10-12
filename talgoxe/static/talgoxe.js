@@ -124,10 +124,10 @@ $(document).ready(function() {
             // Send clipboard to server.
             $.post(
                 '/talgoxe/clipboard',
-                copyStringJson //,
-                // function(result) {
-                //     alert("Urklipp har uppdaterats på servern.");
-                //}
+                copyStringJson ,
+                 function(result) {
+                     alert("Urklipp har uppdaterats på servern.");
+                }
             );
 
             // alert("copyString = " + copyStringJson);
