@@ -62,7 +62,7 @@ def redigera(request, id):
         'artikel': artikel,
         'artiklar': artiklar,
         'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
-        'clipboard': 'kalle kula'
+        'clipboard': request.user.username
         # 'clipboard': clipboard
     }
 
