@@ -123,7 +123,7 @@ $(document).ready(function() {
 
             // Send clipboard to server.
             $.post(
-                '/talgoxe/clipboard',
+                '/sdl/talgoxe/clipboard',
                 copyStringJson ,
                  function(result) {
                      alert("Urklipp har uppdaterats på servern.");
