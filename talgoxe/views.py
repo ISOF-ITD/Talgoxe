@@ -158,7 +158,7 @@ clipboards = {}
 
 @login_required
 def clipboard(request):
-    userName = request.user.username;
+    userName = request.user.username
     # TODO: There should be a better way to get clipboard information from request.
     items = request.POST.items()
     #clipboardJson = None
@@ -166,7 +166,7 @@ def clipboard(request):
         #clipboardJson = item[0];
         #clipboardJson = clipboardJson.split('"')
         #break;
-    clipboards[userName] = request.POST.__str__();
+    clipboards[userName] = userName
 
     #items = request.POST.items()
     #clipboardJson = None
@@ -174,12 +174,12 @@ def clipboard(request):
         #clipboardJson = item[0];
         #clipboardJson = clipboardJson.split('"')
         #break;
-    #clipboards[userName] = clipboardJson[1];
+    #clipboards[userName] = clipboardJson[1]
 
     data = {
         'clipboardUpdated': True
     }
-    return JsonResponse(data);
+    return JsonResponse(data)
 
 @login_required
 def print_on_demand(request):
