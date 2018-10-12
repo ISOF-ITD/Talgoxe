@@ -162,12 +162,12 @@ def artikel(request, id):
 def clipboard(request):
     userName = request.user.username
     # TODO: There should be a better way to get clipboard information from request.
-    items = request.POST.items()
-    clipboardJson = None
-    for item in items:
-        clipboardJson = item[0];
-        clipboardJson = clipboardJson.split('"')
-        break;
+    #items = request.POST.items()
+    #clipboardJson = None
+    #for item in items:
+        #clipboardJson = item[0];
+        #clipboardJson = clipboardJson.split('"')
+        #break;
     clipboards[userName] = request.POST.__str__()
 
     #items = request.POST.items()
