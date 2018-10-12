@@ -64,8 +64,7 @@ def redigera(request, id):
         'artikel': artikel,
         'artiklar': artiklar,
         'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
-        'clipboard': request.user.username
-        # 'clipboard': clipboard
+        'clipboard': clipboard
     }
 
     return HttpResponse(template.render(context, request))
