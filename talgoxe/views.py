@@ -57,6 +57,8 @@ def redigera(request, id):
     clipboard = ''
     if username in clipboards:
         clipboard = clipboards[username]
+    else:
+        clipboard = f'User {username} is not in clipboard.'
 
     context = {
         'artikel': artikel,
