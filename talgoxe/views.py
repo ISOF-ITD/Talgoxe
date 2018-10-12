@@ -160,7 +160,7 @@ def artikel(request, id):
 
 @login_required
 def clipboard(request):
-    userName = request.user.username
+    #userName = request.user.username
     # TODO: There should be a better way to get clipboard information from request.
     #items = request.POST.items()
     #clipboardJson = None
@@ -168,7 +168,8 @@ def clipboard(request):
         #clipboardJson = item[0];
         #clipboardJson = clipboardJson.split('"')
         #break;
-    clipboards[userName] = request.POST.__str__()
+    #clipboards[userName] = request.POST.__str__()
+    clipboards['Kalle kula'] = 'Kalle kula'
 
     #items = request.POST.items()
     #clipboardJson = None
