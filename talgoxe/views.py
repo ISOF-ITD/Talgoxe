@@ -39,6 +39,8 @@ def create(request):
     artikel = Artikel.objects.create(lemma = nylemma, lemma_sortable = Artikel.get_lemma_sortable(nylemma), rang = rang)
     return HttpResponseRedirect(reverse('redigera', args = (artikel.id,)))
 
+clipboards = {}
+
 @login_required
 def redigera(request, id):
     method = request.META['REQUEST_METHOD']
@@ -53,14 +55,15 @@ def redigera(request, id):
     artikel.collect()
     username = request.user.username
     clipboard = ''
-    if (username in clipboards):
+    if username in clipboards:
         clipboard = clipboards[username]
 
     context = {
         'artikel': artikel,
         'artiklar': artiklar,
         'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
-        'clipboard': clipboard
+        'clipboard': 'kalle kula'
+        # 'clipboard': clipboard
     }
 
     return HttpResponse(template.render(context, request))
@@ -153,8 +156,6 @@ def artikel(request, id):
     context = { 'artikel' : artikel, 'format' : format }
 
     return HttpResponse(template.render(context, request))
-
-clipboards = {}
 
 @login_required
 def clipboard(request):
