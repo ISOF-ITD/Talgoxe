@@ -50,15 +50,13 @@ def redigera(request, id):
         artikel.update(request.POST)
 
     template = loader.get_template('talgoxe/redigera.html')
-    artiklar = Artikel.objects.all() # Anm. Svensk alfabetisk ordning verkar funka på frigg-test! Locale?
+    artiklar = Artikel.objects.all()
     artikel = Artikel.objects.get(id = id)
     artikel.collect()
     username = request.user.username
     clipboard = ''
     if username in clipboards:
         clipboard = clipboards[username]
-    # else:
-        # clipboard = f'User {username} is not in clipboard.'
 
     context = {
         'artikel': artikel,
@@ -161,6 +159,7 @@ def artikel(request, id):
 @login_required
 def clipboard(request):
     userName = request.user.username
+
     # TODO: There should be a better way to get clipboard information from request.
     items = request.POST.items()
     clipboardJson = None
@@ -169,15 +168,6 @@ def clipboard(request):
         clipboardJson = clipboardJson.split('"')
         break;
     clipboards[userName] = clipboardJson[1]
-    #clipboards['Kalle kula'] = 'Kalle kula'
-
-    #items = request.POST.items()
-    #clipboardJson = None
-    #for item in items:
-        #clipboardJson = item[0];
-        #clipboardJson = clipboardJson.split('"')
-        #break;
-    #clipboards[userName] = clipboardJson[1]
 
     data = {
         'clipboardUpdated': True
