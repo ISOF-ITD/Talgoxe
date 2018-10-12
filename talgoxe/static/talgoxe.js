@@ -122,15 +122,17 @@ $(document).ready(function() {
             });
 
             // Send clipboard to server.
+            webAddress = $('.handle-article').attr('action');
+            webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+            webAddress = webAddress + "clipboard";
             $.post(
-                '/sdl/talgoxe/clipboard',
+                webAddress,
                 copyStringJson //,
                 // function(result) {
-                //     alert("Urklipp har uppdaterats på servern.");
+                    // alert("Urklipp har uppdaterats på servern.");
                 // }
             );
 
-            // alert("copyString = " + copyStringJson);
             // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
             // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
         }
