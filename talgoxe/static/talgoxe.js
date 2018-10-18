@@ -110,8 +110,8 @@ $(document).ready(function() {
             )
             $(".clipboard")[0].value = copyString;
 
-            // Get clipboard in Json format.
-            copyStringJson = '{ clipboard: "' + copyString + '" }';
+            // Get clipboard object.
+            copyStringObject = { clipboard: copyString };
 
             // Add token that confirms login to AJAX request.
             var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
@@ -127,7 +127,7 @@ $(document).ready(function() {
             webAddress = webAddress + "clipboard";
             $.post(
                 webAddress,
-                copyStringJson //,
+                copyStringObject //,
                 // function(result) {
                     // alert("Urklipp har uppdaterats på servern.");
                 // }

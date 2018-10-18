@@ -159,15 +159,7 @@ def artikel(request, id):
 @login_required
 def clipboard(request):
     userName = request.user.username
-
-    # TODO: There should be a better way to get clipboard information from request.
-    items = request.POST.items()
-    clipboardJson = None
-    for item in items:
-        clipboardJson = item[0];
-        clipboardJson = clipboardJson.split('"')
-        break;
-    clipboards[userName] = clipboardJson[1]
+    clipboards[userName] = request.POST.get('clipboard');
 
     data = {
         'clipboardUpdated': True
