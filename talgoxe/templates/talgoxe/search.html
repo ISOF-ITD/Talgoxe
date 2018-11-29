@@ -1,9 +1,11 @@
 {% include "talgoxe/header.html" %}
 
+{% include "talgoxe/navigation.html" %}
+
 {% if q == 'NULL' %}
-    Ingen söksträng.  Försök <span style="font-family: 'Courier';">{{ uri }}?q=söksträng</span>
+    Ingen söksträng.  Försök <span style="margin-top:70px;">{{ uri }}?q=söksträng</span>
 {% else %}
-  <h2>{{ titel }}</h2>
+  <h2 style="margin-top:70px;">{{ titel }}</h2>
 
   <p>
     <a id="skapa-pdf">Skapa PDF</a>

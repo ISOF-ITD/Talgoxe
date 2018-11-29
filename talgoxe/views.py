@@ -157,7 +157,19 @@ def artikel(request, id):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def clipboard(request):
+def get_clipboard(request):
+    userName = request.user.username
+    clipboard = ''
+    if userName in clipboards:
+        clipboard = clipboards[userName]
+
+    data = {
+        'clipboard': clipboard
+    }
+    return JsonResponse(data)
+
+@login_required
+def update_clipboard(request):
     userName = request.user.username
     clipboards[userName] = request.POST.get('clipboard');
 

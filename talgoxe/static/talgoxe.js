@@ -124,7 +124,7 @@ $(document).ready(function() {
             // Send clipboard to server.
             webAddress = $('.handle-article').attr('action');
             webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
-            webAddress = webAddress + "clipboard";
+            webAddress = webAddress + "update_clipboard";
             $.post(
                 webAddress,
                 copyStringObject //,
@@ -152,27 +152,51 @@ $(document).ready(function() {
         }
         else {
             rowsString = $(".clipboard")[0].value;
-            rowItems = rowsString.split("@");
-            if (isEmpty(rowsString)) {
-                alert("Finns inga rader att klistra in!");
-            }
-            else {
-                index = 0;
-                row = $(".lemma-list input:checked").first().parent();
-                $(row).children('.d-type').val(rowItems[index]);
-                index = index + 1;
-                $(row).children('.d-value').val(rowItems[index]);
-                index = index + 1;
-                while (index < rowItems.length){
-                    $(row).children('.add-row').trigger('click');
-                    row = $(row).next();
-                    $(row).children('.d-type').val(rowItems[index]);
-                    index = index + 1;
-                    $(row).children('.d-value').val(rowItems[index]);
-                    index = index + 1;
+
+            // Get clipboard from server.
+            // Add token that confirms login to AJAX request.
+            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
-            }
-            $(".lemma-list input:checked").prop( "checked", false );
+            });
+
+            // Get clipboard from server.
+            rowItems = '';
+            webAddress = $('.handle-article').attr('action');
+            webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+            webAddress = webAddress + "get_clipboard";
+            $.post(
+                webAddress,
+                null,
+                function(result) {
+                    rowItems = result.clipboard.split("@");
+                    // alert(JSON.stringify(rowItems));
+
+                    // rowItems = rowsString.split("@");
+                    if (isEmpty(rowsString)) {
+                        alert("Finns inga rader att klistra in!");
+                    }
+                    else {
+                        index = 0;
+                        row = $(".lemma-list input:checked").first().parent();
+                        $(row).children('.d-type').val(rowItems[index]);
+                        index = index + 1;
+                        $(row).children('.d-value').val(rowItems[index]);
+                        index = index + 1;
+                        while (index < rowItems.length){
+                            $(row).children('.add-row').trigger('click');
+                            row = $(row).next();
+                            $(row).children('.d-type').val(rowItems[index]);
+                            index = index + 1;
+                            $(row).children('.d-value').val(rowItems[index]);
+                            index = index + 1;
+                        }
+                    }
+                    $(".lemma-list input:checked").prop( "checked", false );
+                }
+            );
        }
     }
 

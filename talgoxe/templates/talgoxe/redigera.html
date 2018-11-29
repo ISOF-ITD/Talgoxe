@@ -1,8 +1,8 @@
 {% include "talgoxe/header.html" %}
 
-{% include "talgoxe/user_summary.html" %}
+{% include "talgoxe/navigation.html" %}
 
-<div id="ordlista">
+<div style="margin-top:70px;" id="ordlista">
 {% include "talgoxe/ny_stickord.html" %}
 <form action="{% url 'search' %}" method="GET" target="_blank">
   <p>Sök bland artiklarna: <input type="text" name="q" /><input type="submit" value="Sök" /> <input type="checkbox" name="sök-överallt"/> Sök överallt <a href="{% url 'print_on_demand' %}" target="_blank">Personaliserad sökning och utskrift</a></p>

@@ -1,6 +1,8 @@
 {% include "talgoxe/header.html" %}
 
-<ul>
+{% include "talgoxe/navigation.html" %}
+
+<ul style="margin-top:70px;">
 {% for artikel in artiklar %}
   <li class="nobullet"><a href="{% url 'redigera' artikel.id %}">{% include "talgoxe/lemma.html" %}</a></li>
 {% endfor %}
