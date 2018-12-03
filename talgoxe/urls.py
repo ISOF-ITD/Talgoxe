@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^redigera/create', views.create, name = 'create'),
     url(r'^delete/(?P<id>\d+)$', views.delete, name = 'delete'),
     url(r'^redigera/(?P<id>\d+)$', views.redigera, name = 'redigera'),
+    url(r'^redigera', views.redigera, name = 'redigera'),
     url(r'^stickord/(?P<stickord>.+)$', views.artikel_efter_stickord, name = 'stickord'),
     url(r'^search$', views.search, name = 'search'),
     url(r'^artikel/(?P<id>\d+)?$', views.artikel, name = 'artikel'),

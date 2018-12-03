@@ -16,10 +16,11 @@ from talgoxe.models import AccessManager, Artikel, Exporter, Spole, UnsupportedF
 
 @login_required
 def index(request):
-    template = loader.get_template('talgoxe/index.html')
-    artiklar = Artikel.objects.all()
-    context = { 'artiklar' : artiklar, 'pagetitle' : "Talgoxe – Svenskt dialektlexikon", 'checkboxes' : False }
-    return HttpResponse(template.render(context, request))
+    # template = loader.get_template('talgoxe/index.html')
+    # artiklar = Artikel.objects.all()
+    # context = { 'artiklar' : artiklar, 'pagetitle' : "Svenskt dialektlexikon", 'checkboxes' : False }
+    # return HttpResponse(template.render(context, request))
+    return HttpResponseRedirect(reverse('redigera'))
 
 @login_required # FIXME Något om användaren faktiskt är utloggad?
 def create(request):
@@ -42,27 +43,34 @@ def create(request):
 clipboards = {}
 
 @login_required
-def redigera(request, id):
+def redigera(request, id = None):
+    artikel = None
     method = request.META['REQUEST_METHOD']
     if method == 'POST':
         AccessManager.check_edit_permission(request.user)
-        artikel = Artikel.objects.get(id = id)
-        artikel.update(request.POST)
+        if (id is None):
+            artikel = Artikel.create(request.POST)
+            return HttpResponseRedirect(reverse('redigera', args=(artikel.id)))
+        else:
+            artikel = Artikel.objects.get(id=id)
+            artikel.update(request.POST)
 
     template = loader.get_template('talgoxe/redigera.html')
     artiklar = Artikel.objects.all()
-    artikel = Artikel.objects.get(id = id)
-    artikel.collect()
-    username = request.user.username
-    clipboard = ''
-    if username in clipboards:
-        clipboard = clipboards[username]
+    pageTitle = 'Svenskt dialektlexikon'
+    if (artikel is None):
+        if (id is None):
+            artikel = None
+        else:
+            artikel = Artikel.objects.get(id=id)
+            artikel.collect()
+            pageTitle = artikel.lemma + "- " + pageTitle
 
     context = {
         'artikel': artikel,
         'artiklar': artiklar,
-        'pagetitle': "%s – redigera i Svenskt dialektlexikon" % artikel.lemma,
-        'clipboard': clipboard
+        'pagetitle': pageTitle,
+        'clipboard': None
     }
 
     return HttpResponse(template.render(context, request))
@@ -73,7 +81,7 @@ def delete(request, id):
     Spole.objects.filter(artikel_id = id).delete()
     Artikel.objects.get(id = id).delete()
 
-    return HttpResponseRedirect(reverse('index'))
+    return HttpResponseRedirect(reverse('redigera'))
 
 @login_required
 def artikel_efter_stickord(request, stickord):

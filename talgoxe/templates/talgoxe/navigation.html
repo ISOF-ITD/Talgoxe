@@ -1,8 +1,8 @@
 <nav class="navigation">
     <ul>
         <li><p>Användare: {{ request.user }}</p></li>
-        <li><a href="">Skapa artikel</a></li>
-        <li><a class="active" href="">Redigera artikel</a></li>
+        <li><a class="active" href="{% url 'redigera' %}">Skapa artikel</a></li>
+        <li><a href="{% url 'redigera' %}">Redigera artikel</a></li>
         <li class="dropdown">
             <a href="javascript:void(0)" class="dropbtn">Skapa fil &darr;</a>
             <div class="dropdown-content">
@@ -11,7 +11,7 @@
                 <a href="">Word fil</a>
             </div>
         </li>
-        <li><a href="">Anpassat urval</a></li>
+        <li><a href="{% url 'print_on_demand' %}">Anpassat urval</a></li>
         <li style="float:right"><a href="{% url 'easylogout' %}">Logga ut</a></li>
     </ul>
 </nav>

@@ -7,6 +7,7 @@ from os.path import abspath, dirname, join
 from re import match, split
 from tempfile import mkdtemp
 from django.contrib.auth.models import User
+from django.db.models import Max
 
 import ezodf
 import docx
@@ -64,6 +65,24 @@ class Artikel(models.Model):
             prefix = Artikel.superscripts[r % 10] + prefix
             r = floor(r / 10)
         return prefix + self.lemma
+
+    @staticmethod
+    def create(post_data):
+        nylemma = post_data['stickord']
+        företrädare = Artikel.objects.filter(lemma = nylemma)
+        maxrang = företrädare.aggregate(Max('rang'))['rang__max']
+        if maxrang == None:
+            rang = 0
+        elif maxrang == 0:
+            artikel0 = företrädare.first()
+            artikel0.rang = 1
+            artikel0.save()
+            rang = 2
+        elif maxrang > 0:
+            rang = maxrang + 1
+        article = Artikel.objects.create(lemma = nylemma, lemma_sortable = Artikel.get_lemma_sortable(nylemma), rang = rang)
+        article.update(post_data)
+        return article
 
     def get_spole(self, i):
         if i < len(self.spolar()):

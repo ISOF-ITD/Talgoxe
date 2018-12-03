@@ -38,11 +38,11 @@ $(document).ready(function() {
 
     function removeArticle(event) {
         articleName = $('.article-name').attr('value')
-        action = $('.handle-article').attr('action')
+        action = $('.edit-article').attr('action')
         articleId = action.substring(action.lastIndexOf("/") + 1, 100)
         action = action.replace("redigera", "delete")
         if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
-            $('.handle-article').attr('action', action);
+            $('.edit-article').attr('action', action);
         }
         else {
             event.preventDefault();
@@ -122,7 +122,7 @@ $(document).ready(function() {
             });
 
             // Send clipboard to server.
-            webAddress = $('.handle-article').attr('action');
+            webAddress = $('.edit-article').attr('action');
             webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
             webAddress = webAddress + "update_clipboard";
             $.post(
@@ -164,7 +164,7 @@ $(document).ready(function() {
 
             // Get clipboard from server.
             rowItems = '';
-            webAddress = $('.handle-article').attr('action');
+            webAddress = $('.edit-article').attr('action');
             webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
             webAddress = webAddress + "get_clipboard";
             $.post(
