@@ -44,7 +44,18 @@ body {
 }
 
 .search-select {
-  padding: 2px;
+  margin: 2px;
+}
+
+.search-compare-type {
+  float: right;
+}
+
+.search-text {
+  margin-right: 2px;
+  margin-bottom: 2px;
+  margin-left: 2px;
+  width: 97%;
 }
 
 .print-document {

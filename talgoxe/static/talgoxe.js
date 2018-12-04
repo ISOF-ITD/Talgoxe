@@ -61,6 +61,8 @@ $(document).ready(function() {
 
     $('.remove-article').click(removeArticle);
 
+    $('.search-article-button').click(searchArticles2);
+
     function removeRow(event) {
         event.preventDefault();
         var id = event.currentTarget.id.replace(/^remove-row-/, '')
@@ -198,6 +200,20 @@ $(document).ready(function() {
                 }
             );
        }
+    }
+
+    function searchArticles2(event) {
+        let compareType;
+        let searchText;
+        let searchType;
+
+        event.preventDefault();
+
+        // Get data from html page.
+        compareType = $("#search-compare-type1").val();
+        searchText = $("#search-text1").val();
+        searchType = $("#search-type1").val();
+        alert(compareType + ' ' + searchText + ' ' + searchType);
     }
 
     function moveDown(event) {
