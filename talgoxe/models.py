@@ -19,6 +19,11 @@ from django.db import models
 
 # FIXME Superscripts!
 
+def is_empty_string(string):
+    if (string is None):
+        return True
+    return (len(string) < 1)
+
 class UnsupportedFormat(Exception):
   pass
 
@@ -332,6 +337,27 @@ class Typ(models.Model):
         out = self.__str__()
         out += (4 - len(out)) * '\xa0'
         return out
+
+class ArticleSearchCriteria:
+    def __init__(self):
+        self.compare_type = "StartsWith"
+        self.search_string = ""
+        self.search_type = "Lemma"
+
+class ArticleManager:
+
+    @staticmethod
+    def get_articles_by_search_criteria(search_criteria):
+        if (search_criteria is None):
+            raise ValueError("Article search critera must be specified")
+
+        articles = []
+        if (is_empty_string(search_criteria.search_string)):
+            search_stick_words = Artikel.objects.all()
+        else:
+            search_stick_words = Artikel.objects.filter(lemma_sortable__contains = search_criteria.search_string)
+        articles += search_stick_words
+        return articles
 
 article_types_by_abbreviation = {}
 article_types_by_id = {}

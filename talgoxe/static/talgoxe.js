@@ -202,6 +202,16 @@ $(document).ready(function() {
        }
     }
 
+    function AddToken() {
+        // Add token that confirms login to AJAX request.
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+    }
+
     function searchArticles2(event) {
         let compareType;
         let searchText;
@@ -211,9 +221,37 @@ $(document).ready(function() {
 
         // Get data from html page.
         compareType = $("#search-compare-type1").val();
-        searchText = $("#search-text1").val();
+        searchString = $("#search-string1").val();
         searchType = $("#search-type1").val();
-        alert(compareType + ' ' + searchText + ' ' + searchType);
+        var searchCriteria = { compare_type: compareType,
+                               search_string: searchString,
+                               search_type: searchType
+                             };
+        var articleSearchCriteria = { searchCriteriaArray : [] }
+        articleSearchCriteria.searchCriteriaArray.push(searchCriteria)
+        // alert(compareType + ' ' + searchString + ' ' + searchType);
+
+        // Get articles from server.
+        //AddToken();
+        // Add token that confirms login to AJAX request.
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+        webAddress = $('.edit-article').attr('action');
+        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress + "get_articles_by_search_criteria";
+        // alert(webAddress);
+        // alert(JSON.stringify(searchCriteria));
+        $.post(
+            webAddress,
+            articleSearchCriteria,
+            function(result) {
+                alert(JSON.stringify(result));
+            }
+        );
     }
 
     function moveDown(event) {

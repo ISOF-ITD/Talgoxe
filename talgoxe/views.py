@@ -12,15 +12,22 @@ from django.template import loader, Context, RequestContext
 from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
 
-from talgoxe.models import AccessManager, Artikel, Exporter, Spole, UnsupportedFormat
+from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel, Exporter, Spole, UnsupportedFormat
+
+clipboards = {}
 
 @login_required
-def index(request):
-    # template = loader.get_template('talgoxe/index.html')
-    # artiklar = Artikel.objects.all()
-    # context = { 'artiklar' : artiklar, 'pagetitle' : "Svenskt dialektlexikon", 'checkboxes' : False }
-    # return HttpResponse(template.render(context, request))
-    return HttpResponseRedirect(reverse('redigera'))
+def artikel_efter_stickord(request, stickord):
+    artiklar = Artikel.objects.filter(lemma = stickord)
+    # TODO: 0!
+    if len(artiklar) == 1:
+        return HttpResponseRedirect(reverse('redigera', args = (artiklar.first().id,)))
+    else:
+        template = loader.get_template('talgoxe/stickord.html')
+        context = {
+            'artiklar' : artiklar
+        }
+        return HttpResponse(template.render(context, request))
 
 @login_required # FIXME Något om användaren faktiskt är utloggad?
 def create(request):
@@ -40,7 +47,57 @@ def create(request):
     artikel = Artikel.objects.create(lemma = nylemma, lemma_sortable = Artikel.get_lemma_sortable(nylemma), rang = rang)
     return HttpResponseRedirect(reverse('redigera', args = (artikel.id,)))
 
-clipboards = {}
+@login_required
+def delete(request, id):
+    AccessManager.check_edit_permission(request.user)
+    Spole.objects.filter(artikel_id = id).delete()
+    Artikel.objects.get(id = id).delete()
+
+    return HttpResponseRedirect(reverse('redigera'))
+
+@login_required
+def get_articles_by_search_criteria(request):
+    compare_type = request.POST.get('searchCriteriaArray[0][compare_type]')
+    search_string = request.POST.get('searchCriteriaArray[0][search_string]')
+    search_type = request.POST.get('searchCriteriaArray[0][search_type]')
+    search_criteria = ArticleSearchCriteria()
+    search_criteria.compare_type = compare_type
+    search_criteria.search_string = search_string
+    search_criteria.search_type = search_type
+    articles = ArticleManager.get_articles_by_search_criteria(search_criteria)
+
+    articles_dictionary = {}
+    articles_array = []
+
+    for article in articles:
+        data = {
+            'lemma': article.lemma,
+            'id' : article.id
+        }
+        articles_array.append(data)
+
+    articles_dictionary["articles"] = articles_array
+    return JsonResponse(articles_dictionary, safe=False)
+
+@login_required
+def get_clipboard(request):
+    userName = request.user.username
+    clipboard = ''
+    if userName in clipboards:
+        clipboard = clipboards[userName]
+
+    data = {
+        'clipboard': clipboard
+    }
+    return JsonResponse(data)
+
+@login_required
+def index(request):
+    # template = loader.get_template('talgoxe/index.html')
+    # artiklar = Artikel.objects.all()
+    # context = { 'artiklar' : artiklar, 'pagetitle' : "Svenskt dialektlexikon", 'checkboxes' : False }
+    # return HttpResponse(template.render(context, request))
+    return HttpResponseRedirect(reverse('redigera'))
 
 @login_required
 def redigera(request, id = None):
@@ -74,27 +131,6 @@ def redigera(request, id = None):
     }
 
     return HttpResponse(template.render(context, request))
-
-@login_required
-def delete(request, id):
-    AccessManager.check_edit_permission(request.user)
-    Spole.objects.filter(artikel_id = id).delete()
-    Artikel.objects.get(id = id).delete()
-
-    return HttpResponseRedirect(reverse('redigera'))
-
-@login_required
-def artikel_efter_stickord(request, stickord):
-    artiklar = Artikel.objects.filter(lemma = stickord)
-    # TODO: 0!
-    if len(artiklar) == 1:
-        return HttpResponseRedirect(reverse('redigera', args = (artiklar.first().id,)))
-    else:
-        template = loader.get_template('talgoxe/stickord.html')
-        context = {
-            'artiklar' : artiklar
-        }
-        return HttpResponse(template.render(context, request))
 
 @login_required
 def search(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
@@ -165,21 +201,9 @@ def artikel(request, id):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def get_clipboard(request):
-    userName = request.user.username
-    clipboard = ''
-    if userName in clipboards:
-        clipboard = clipboards[userName]
-
-    data = {
-        'clipboard': clipboard
-    }
-    return JsonResponse(data)
-
-@login_required
 def update_clipboard(request):
     userName = request.user.username
-    clipboards[userName] = request.POST.get('clipboard');
+    clipboards[userName] = request.POST.get('clipboard')
 
     data = {
         'clipboardUpdated': True
