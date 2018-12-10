@@ -255,6 +255,8 @@ $(document).ready(function() {
             articleSearchCriteria,
             function(result) {
                 var appendTo = $('.search-article-result');
+                webAddress = $('.edit-article').attr('action');
+                webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
                 appendTo.empty();
                 if (isNotEmpty(result) && isNotEmpty(result.articles)) {
                     var articleIndex;
@@ -268,7 +270,9 @@ $(document).ready(function() {
                         }
 
                         appendTo.append('<li class="nobullet search-article-result-row">' +
-                                       '<a href="/talgoxe/redigera/'+
+                                       '<a href="'+
+                                       webAddress +
+                                       'redigera/' +
                                        result.articles[articleIndex].id +
                                        '" value="' +
                                        result.articles[articleIndex].lemma +
