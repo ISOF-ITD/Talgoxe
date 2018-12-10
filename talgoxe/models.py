@@ -353,9 +353,16 @@ class ArticleManager:
 
         articles = []
         if (is_empty_string(search_criteria.search_string)):
-            search_stick_words = Artikel.objects.all()
+            search_stick_words = None
         else:
-            search_stick_words = Artikel.objects.filter(lemma_sortable__contains = search_criteria.search_string)
+            if (search_criteria.compare_type == 'Contains'):
+                search_stick_words = Artikel.objects.filter(lemma_sortable__icontains = search_criteria.search_string)
+            elif (search_criteria.compare_type == 'EndWith'):
+                search_stick_words = Artikel.objects.filter(lemma_sortable__iendswith=search_criteria.search_string)
+            elif (search_criteria.compare_type == 'EqualTo'):
+                search_stick_words = Artikel.objects.filter(lemma_sortable__iexact=search_criteria.search_string)
+            elif (search_criteria.compare_type == 'StartsWith'):
+                search_stick_words = Artikel.objects.filter(lemma_sortable__istartswith=search_criteria.search_string)
         articles += search_stick_words
         return articles
 

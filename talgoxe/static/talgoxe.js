@@ -4,6 +4,11 @@ var copyString;
 function isEmpty(val){
     return (val === undefined || val == null || val.length <= 0);
 }
+
+function isNotEmpty(val){
+    return !isEmpty(val);
+}
+
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
         lastId = $('.add-row').last()[0].id;
@@ -249,7 +254,32 @@ $(document).ready(function() {
             webAddress,
             articleSearchCriteria,
             function(result) {
-                alert(JSON.stringify(result));
+                var appendTo = $('.search-article-result');
+                appendTo.empty();
+                if (isNotEmpty(result) && isNotEmpty(result.articles)) {
+                    var articleIndex;
+                    for (articleIndex = 0; articleIndex < result.articles.length; articleIndex++) {
+                        var rankString;
+                        if (result.articles[articleIndex].rank > 0) {
+                            rankString = '<sup>' + result.articles[articleIndex].rank + '</sup>'
+                        }
+                        else {
+                            rankString = '';
+                        }
+
+                        appendTo.append('<li class="nobullet search-article-result-row">' +
+                                       '<a href="/talgoxe/redigera/'+
+                                       result.articles[articleIndex].id +
+                                       '" value="' +
+                                       result.articles[articleIndex].lemma +
+                                       '">' +
+                                       rankString +
+                                       result.articles[articleIndex].lemma +
+                                       '</a>' +
+                                       '</li>');
+                    }
+                    // alert(JSON.stringify(result));
+                }
             }
         );
     }

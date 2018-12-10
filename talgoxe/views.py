@@ -17,6 +17,15 @@ from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria,
 clipboards = {}
 
 @login_required
+def artikel(request, id):
+    artikel = Artikel.objects.get(id = id)
+    template = loader.get_template('talgoxe/artikel.html')
+    artikel.collect()
+    context = { 'artikel' : artikel, 'format' : format }
+
+    return HttpResponse(template.render(context, request))
+
+@login_required
 def artikel_efter_stickord(request, stickord):
     artiklar = Artikel.objects.filter(lemma = stickord)
     # TODO: 0!
@@ -55,6 +64,11 @@ def delete(request, id):
 
     return HttpResponseRedirect(reverse('redigera'))
 
+def easylogout(request):
+    logout(request)
+    template = loader.get_template("talgoxe/logout.html")
+    return HttpResponse(template.render({ }, request))
+
 @login_required
 def get_articles_by_search_criteria(request):
     compare_type = request.POST.get('searchCriteriaArray[0][compare_type]')
@@ -72,7 +86,8 @@ def get_articles_by_search_criteria(request):
     for article in articles:
         data = {
             'lemma': article.lemma,
-            'id' : article.id
+            'id' : article.id,
+            'rank' : article.rang
         }
         articles_array.append(data)
 
@@ -98,6 +113,42 @@ def index(request):
     # context = { 'artiklar' : artiklar, 'pagetitle' : "Svenskt dialektlexikon", 'checkboxes' : False }
     # return HttpResponse(template.render(context, request))
     return HttpResponseRedirect(reverse('redigera'))
+
+@login_required
+def print(request, format):
+    if format not in ['pdf', 'odt', 'docx']:
+        raise UnsupportedFormat(format)
+    template = loader.get_template('talgoxe/download_document.html')
+    exporter = Exporter(format)
+    # exporter.export_letters()
+    filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
+    context = { 'filepath' : filepath }
+
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def print_on_demand(request):
+    # Artikel.update_lemma_sortable()
+    method = request.META['REQUEST_METHOD']
+    template = loader.get_template('talgoxe/print_on_demand.html')
+    if method == 'POST':
+        artiklar = []
+        for key in request.POST:
+            mdata = match('selected-(\d+)', key)
+            bdata = match('bokstav-(.)', key)
+            if mdata:
+                artiklar.append(Artikel.objects.get(id = int(mdata.group(1))))
+            elif bdata:
+                hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
+                artiklar += hel_bokstav
+        context = { 'artiklar' : artiklar, 'redo' : True, 'titel' : 'Ditt urval på %d artiklar' % len(artiklar), 'pagetitle' : '%d artiklar' % len(artiklar) }
+        template = loader.get_template('talgoxe/search.html')
+    elif method == 'GET':
+        artiklar = Artikel.objects.order_by('lemma', 'rang')
+        bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
+        context = { 'artiklar' : artiklar, 'checkboxes' : True, 'bokstäver' : bokstäver, 'pagetitle' : '%d artiklar' % artiklar.count() }
+
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def redigera(request, id = None):
@@ -192,15 +243,6 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
     return HttpResponse(template.render(context, request))
 
 @login_required
-def artikel(request, id):
-    artikel = Artikel.objects.get(id = id)
-    template = loader.get_template('talgoxe/artikel.html')
-    artikel.collect()
-    context = { 'artikel' : artikel, 'format' : format }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
 def update_clipboard(request):
     userName = request.user.username
     clipboards[userName] = request.POST.get('clipboard')
@@ -209,44 +251,3 @@ def update_clipboard(request):
         'clipboardUpdated': True
     }
     return JsonResponse(data)
-
-@login_required
-def print_on_demand(request):
-    # Artikel.update_lemma_sortable()
-    method = request.META['REQUEST_METHOD']
-    template = loader.get_template('talgoxe/print_on_demand.html')
-    if method == 'POST':
-        artiklar = []
-        for key in request.POST:
-            mdata = match('selected-(\d+)', key)
-            bdata = match('bokstav-(.)', key)
-            if mdata:
-                artiklar.append(Artikel.objects.get(id = int(mdata.group(1))))
-            elif bdata:
-                hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
-                artiklar += hel_bokstav
-        context = { 'artiklar' : artiklar, 'redo' : True, 'titel' : 'Ditt urval på %d artiklar' % len(artiklar), 'pagetitle' : '%d artiklar' % len(artiklar) }
-        template = loader.get_template('talgoxe/search.html')
-    elif method == 'GET':
-        artiklar = Artikel.objects.order_by('lemma', 'rang')
-        bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
-        context = { 'artiklar' : artiklar, 'checkboxes' : True, 'bokstäver' : bokstäver, 'pagetitle' : '%d artiklar' % artiklar.count() }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def print(request, format):
-    if format not in ['pdf', 'odt', 'docx']:
-        raise UnsupportedFormat(format)
-    template = loader.get_template('talgoxe/download_document.html')
-    exporter = Exporter(format)
-    # exporter.export_letters()
-    filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
-    context = { 'filepath' : filepath }
-
-    return HttpResponse(template.render(context, request))
-
-def easylogout(request):
-    logout(request)
-    template = loader.get_template("talgoxe/logout.html")
-    return HttpResponse(template.render({ }, request))

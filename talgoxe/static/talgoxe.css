@@ -126,6 +126,25 @@ body {
   padding-inline-start: 0px;
 }
 
+.search-article-result {
+  border: 1px solid black;
+  width: 99%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 360px;
+  margin-bottom: 0px;
+  margin-left: 0px;
+  margin-right: 2px;
+  margin-top: 2px;
+  font-family: 'Courier';
+  padding-inline-start: 0px;
+}
+
+.search-article-result li {
+  margin-top: 3px;
+  margin-left: 3px;
+}
+
 .select-field {
   margin-left: 4px;
   margin-top: 6px;
