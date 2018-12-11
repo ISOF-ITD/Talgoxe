@@ -164,7 +164,6 @@ def redigera(request, id = None):
             artikel.update(request.POST)
 
     template = loader.get_template('talgoxe/redigera.html')
-    artiklar = Artikel.objects.all()
     pageTitle = 'Svenskt dialektlexikon'
     if (artikel is None):
         if (id is None):
@@ -176,7 +175,6 @@ def redigera(request, id = None):
 
     context = {
         'artikel': artikel,
-        'artiklar': artiklar,
         'pagetitle': pageTitle,
         'clipboard': None
     }

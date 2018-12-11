@@ -352,18 +352,62 @@ class ArticleManager:
             raise ValueError("Article search critera must be specified")
 
         articles = []
-        if (is_empty_string(search_criteria.search_string)):
-            search_stick_words = None
-        else:
-            if (search_criteria.compare_type == 'Contains'):
-                search_stick_words = Artikel.objects.filter(lemma_sortable__icontains = search_criteria.search_string)
-            elif (search_criteria.compare_type == 'EndWith'):
-                search_stick_words = Artikel.objects.filter(lemma_sortable__iendswith=search_criteria.search_string)
-            elif (search_criteria.compare_type == 'EqualTo'):
-                search_stick_words = Artikel.objects.filter(lemma_sortable__iexact=search_criteria.search_string)
-            elif (search_criteria.compare_type == 'StartsWith'):
-                search_stick_words = Artikel.objects.filter(lemma_sortable__istartswith=search_criteria.search_string)
-        articles += search_stick_words
+        search_articles = None
+        if (not (is_empty_string(search_criteria.search_string))):
+            if ((search_criteria.search_type == 'Lemma') or
+                (search_criteria.search_type == 'All')):
+                if (search_criteria.compare_type == 'Contains'):
+                    search_articles = Artikel.objects.filter(lemma_sortable__icontains = search_criteria.search_string)
+                elif (search_criteria.compare_type == 'EndWith'):
+                    search_articles = Artikel.objects.filter(lemma_sortable__iendswith=search_criteria.search_string)
+                elif (search_criteria.compare_type == 'EqualTo'):
+                    search_articles = Artikel.objects.filter(lemma_sortable__iexact=search_criteria.search_string)
+                elif (search_criteria.compare_type == 'StartsWith'):
+                    search_articles = Artikel.objects.filter(lemma_sortable__istartswith=search_criteria.search_string)
+                articles += search_articles
+
+            if ((search_criteria.search_type == 'ArticleItem') or
+                (search_criteria.search_type == 'All')):
+                if (search_criteria.compare_type == 'Contains'):
+                    articleItems = Spole.objects.filter(text__icontains=search_criteria.search_string).select_related('artikel')
+                elif (search_criteria.compare_type == 'EndWith'):
+                    articleItems = Spole.objects.filter(text__iendswith=search_criteria.search_string).select_related('artikel')
+                elif (search_criteria.compare_type == 'EqualTo'):
+                    articleItems = Spole.objects.filter(text__iexact=search_criteria.search_string).select_related('artikel')
+                elif (search_criteria.compare_type == 'StartsWith'):
+                    articleItems = Spole.objects.filter(text__istartswith=search_criteria.search_string).select_related('artikel')
+                search_articles = [articleItem.artikel for articleItem in articleItems]
+                articles += search_articles
+
+            if ((search_criteria.search_type == 'ArticleItemType') or
+                (search_criteria.search_type == 'All')):
+                if (search_criteria.compare_type == 'Contains'):
+                    articleItemTypes = Typ.objects.filter(kod__icontains=search_criteria.search_string)
+                elif (search_criteria.compare_type == 'EndWith'):
+                    articleItemTypes = Typ.objects.filter(kod__iendswith=search_criteria.search_string)
+                elif (search_criteria.compare_type == 'EqualTo'):
+                    articleItemTypes = Typ.objects.filter(kod__iexact=search_criteria.search_string)
+                elif (search_criteria.compare_type == 'StartsWith'):
+                    articleItemTypes = Typ.objects.filter(kod__istartswith=search_criteria.search_string)
+                articleItemTypeIds = []
+                for articleItemType in articleItemTypes:
+                    articleItemTypeIds.append(articleItemType.id)
+                articleItems = Spole.objects.filter(typ_id__in=articleItemTypeIds).select_related('artikel')
+                search_articles = [articleItem.artikel for articleItem in articleItems]
+                articles += search_articles
+
+        if (len(articles) > 1):
+            # Get distinct articles.
+            articlesDictionary = {}
+            for article in articles:
+                if (not (article.id in articlesDictionary)):
+                    articlesDictionary[article.id] = article
+
+            # Sorted articles from database.
+            search_articles = Artikel.objects.filter(id__in=articlesDictionary.keys())
+            articles = []
+            articles += search_articles
+
         return articles
 
 article_types_by_abbreviation = {}

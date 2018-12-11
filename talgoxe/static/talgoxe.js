@@ -255,11 +255,14 @@ $(document).ready(function() {
             articleSearchCriteria,
             function(result) {
                 var appendTo = $('.search-article-result');
+                var articleCount = $('#number-of-found-articles');
                 webAddress = $('.edit-article').attr('action');
                 webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
                 appendTo.empty();
+                articleCount.empty();
                 if (isNotEmpty(result) && isNotEmpty(result.articles)) {
                     var articleIndex;
+                    articleCount.append('Antal artiklar = ' + result.articles.length);
                     for (articleIndex = 0; articleIndex < result.articles.length; articleIndex++) {
                         var rankString;
                         if (result.articles[articleIndex].rank > 0) {
@@ -283,6 +286,9 @@ $(document).ready(function() {
                                        '</li>');
                     }
                     // alert(JSON.stringify(result));
+                }
+                else {
+                    articleCount.append('Antal artiklar = 0');
                 }
             }
         );

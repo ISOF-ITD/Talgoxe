@@ -17,7 +17,7 @@ body {
   overflow-x: hidden;
   border: 1px solid black;
   width: 28%;
-  height: 300px;
+  height: 480px;
   margin-left: 2%;
   margin-right: 2%;
   font-family: 'Droid Serif', Georgia, Times, serif, roman;
@@ -31,7 +31,7 @@ body {
   overflow-x: hidden;
   border: 1px solid black;
   width: 25%;
-  height: 300px;
+  height: 500px;
   margin-left: 2%;
   margin-right: 2%;
   font-family: 'Droid Serif', Georgia, Times, serif, roman;
@@ -79,7 +79,7 @@ body {
 #inmatning {
   border: 1px solid black;
   width: 47%;
-  height: 300px;
+  height: 460px;
   margin-right: 2%;
   font-family: 'Courier';
 }
@@ -117,7 +117,7 @@ body {
   width: 99%;
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 400px;
+  height: 500px;
   margin-bottom: 0%;
   margin-left: 3px;
   margin-right: 3px;
@@ -131,7 +131,7 @@ body {
   width: 99%;
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 360px;
+  height: 460px;
   margin-bottom: 0px;
   margin-left: 0px;
   margin-right: 2px;
@@ -150,9 +150,16 @@ body {
   margin-top: 6px;
 }
 
+#number-of-found-articles {
+  border: 0px;
+  display: inline;
+  float:right;
+  margin-right: 4px;
+}
+
 #handle-article {
   width: 100%;
-  height: 500px;
+  height: 600px;
 }
 
 #handle-article h2 {

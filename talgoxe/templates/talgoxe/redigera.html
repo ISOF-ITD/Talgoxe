@@ -2,14 +2,7 @@
 
 {% include "talgoxe/navigation.html" %}
 
-<div style="margin-top:70px;" id="ordlista">
-{% include "talgoxe/ny_stickord.html" %}
-<form action="{% url 'search' %}" method="GET" target="_blank">
-  <p>Sök bland artiklarna: <input type="text" name="q" /><input type="submit" value="Sök" /> <input type="checkbox" name="sök-överallt"/> Sök överallt <a href="{% url 'print_on_demand' %}" target="_blank">Personaliserad sökning och utskrift</a></p>
-</form>
-{% include 'talgoxe/ordlista.html' %}
-</div>
-<table id="handle-article">
+<table style="margin-top:70px;" id="handle-article">
   <tr>
     <td id="inmatning">
         <h2>Inmatning</h2>
@@ -105,6 +98,7 @@
                 <input type="text" id="search-string1" class="search-string" />
             </div>
             <input type="submit" class="search-article-button" value="S&ouml;k" />
+            <div id="number-of-found-articles">Antal artiklar = 0</div>
             <ul class="search-article-result">
             </ul>
         </form>
