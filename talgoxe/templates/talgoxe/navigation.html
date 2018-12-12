@@ -1,8 +1,28 @@
 <nav class="navigation">
     <ul>
         <li><p>Användare: {{ request.user }}</p></li>
-        <li><a class="active" href="{% url 'redigera' %}">Skapa artikel</a></li>
-        <li><a href="{% url 'redigera' %}">Redigera artikel</a></li>
+        <li>
+            {% if create_article %}
+                <a class="active" href="{% url 'redigera' %}">Skapa artikel</a>
+            {% else %}
+                <a href="{% url 'redigera' %}">Skapa artikel</a>
+            {% endif %}
+        </li>
+        <li>
+            {% if current_article %}
+                {% if edit_article %}
+                    <a class="active" href="{% url 'redigera' current_article.id %}">Redigera artikel</a>
+                {% else %}
+                    <a href="{% url 'redigera' current_article.id %}">Redigera artikel</a>
+                {% endif %}
+            {% else %}
+                {% if edit_article %}
+                    <a class="active" href="{% url 'redigera' %}">Redigera artikel</a>
+                {% else %}
+                    <a href="{% url 'redigera' %}">Redigera artikel</a>
+                {% endif %}
+            {% endif %}
+        </li>
         <li class="dropdown">
             <a href="javascript:void(0)" class="dropbtn">Skapa fil &darr;</a>
             <div class="dropdown-content">
@@ -11,7 +31,13 @@
                 <a href="">Word fil</a>
             </div>
         </li>
-        <li><a href="{% url 'print_on_demand' %}">Anpassat urval</a></li>
+        <li>
+            {% if print_on_demand %}
+                <a class="active" href="{% url 'print_on_demand' %}">Anpassat urval</a>
+            {% else %}
+                <a href="{% url 'print_on_demand' %}">Anpassat urval</a>
+            {% endif %}
+        </li>
         <li style="float:right"><a href="{% url 'easylogout' %}">Logga ut</a></li>
     </ul>
 </nav>

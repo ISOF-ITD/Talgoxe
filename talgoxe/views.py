@@ -14,15 +14,56 @@ from django.utils.datastructures import MultiValueDictKeyError
 
 from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel, Exporter, Spole, UnsupportedFormat
 
-clipboards = {}
+userSettings = {}
+
+class UserSettings:
+
+    @staticmethod
+    def get_clipboard(request):
+        settings = UserSettings.get_settings(request)
+        if 'clipboard' in settings:
+            clipboard = settings['clipboard']
+        else:
+            clipboard = ''
+        return clipboard
+
+    @staticmethod
+    def get_edit_article(request):
+        settings = UserSettings.get_settings(request)
+        if 'editArticle' in settings:
+            editArticle = settings['editArticle']
+        else:
+            editArticle = None
+        return editArticle
+
+    @staticmethod
+    def get_settings(request):
+        userName = request.user.username
+        if userName in userSettings:
+            settings = userSettings[userName]
+        else:
+            settings = {}
+            userSettings[userName] = settings
+        return settings
+
+    @staticmethod
+    def update_clipboard(request, clipboard):
+        settings = UserSettings.get_settings(request)
+        settings['clipboard'] = clipboard
+
+    @staticmethod
+    def update_edit_article(request, article):
+        settings = UserSettings.get_settings(request)
+        settings['editArticle'] = article
 
 @login_required
 def artikel(request, id):
     artikel = Artikel.objects.get(id = id)
     template = loader.get_template('talgoxe/artikel.html')
     artikel.collect()
-    context = { 'artikel' : artikel, 'format' : format }
-
+    context = { 'current_article' : artikel,
+                'current_page' : 'artikel',
+                'format' : format }
     return HttpResponse(template.render(context, request))
 
 @login_required
@@ -34,7 +75,9 @@ def artikel_efter_stickord(request, stickord):
     else:
         template = loader.get_template('talgoxe/stickord.html')
         context = {
-            'artiklar' : artiklar
+            'artiklar' : artiklar,
+            'current_article': artikel,
+            'current_page': 'stickord',
         }
         return HttpResponse(template.render(context, request))
 
@@ -61,6 +104,7 @@ def delete(request, id):
     AccessManager.check_edit_permission(request.user)
     Spole.objects.filter(artikel_id = id).delete()
     Artikel.objects.get(id = id).delete()
+    UserSettings.update_edit_article(request, None)
 
     return HttpResponseRedirect(reverse('redigera'))
 
@@ -96,23 +140,18 @@ def get_articles_by_search_criteria(request):
 
 @login_required
 def get_clipboard(request):
-    userName = request.user.username
-    clipboard = ''
-    if userName in clipboards:
-        clipboard = clipboards[userName]
-
     data = {
-        'clipboard': clipboard
+        'clipboard': UserSettings.get_clipboard(request)
     }
     return JsonResponse(data)
 
 @login_required
 def index(request):
-    # template = loader.get_template('talgoxe/index.html')
-    # artiklar = Artikel.objects.all()
-    # context = { 'artiklar' : artiklar, 'pagetitle' : "Svenskt dialektlexikon", 'checkboxes' : False }
-    # return HttpResponse(template.render(context, request))
-    return HttpResponseRedirect(reverse('redigera'))
+    article = UserSettings.get_edit_article(request)
+    if (article is None):
+        return HttpResponseRedirect(reverse('redigera'))
+    else:
+        return HttpResponseRedirect(reverse('redigera', args=(article.id,)))
 
 @login_required
 def print(request, format):
@@ -122,7 +161,9 @@ def print(request, format):
     exporter = Exporter(format)
     # exporter.export_letters()
     filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
-    context = { 'filepath' : filepath }
+    context = {'current_article' : UserSettings.get_edit_article(request),
+               'print_on_demand': True,
+               'filepath' : filepath }
 
     return HttpResponse(template.render(context, request))
 
@@ -141,12 +182,22 @@ def print_on_demand(request):
             elif bdata:
                 hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
                 artiklar += hel_bokstav
-        context = { 'artiklar' : artiklar, 'redo' : True, 'titel' : 'Ditt urval på %d artiklar' % len(artiklar), 'pagetitle' : '%d artiklar' % len(artiklar) }
+        context = { 'current_article' : UserSettings.get_edit_article(request),
+                    'artiklar' : artiklar,
+                    'redo' : True,
+                    'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
+                    'pagetitle' : '%d artiklar' % len(artiklar),
+                    'print_on_demand': True }
         template = loader.get_template('talgoxe/search.html')
     elif method == 'GET':
         artiklar = Artikel.objects.order_by('lemma', 'rang')
         bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
-        context = { 'artiklar' : artiklar, 'checkboxes' : True, 'bokstäver' : bokstäver, 'pagetitle' : '%d artiklar' % artiklar.count() }
+        context = { 'current_article' : UserSettings.get_edit_article(request),
+                    'artiklar' : artiklar,
+                    'checkboxes' : True,
+                    'bokstäver' : bokstäver,
+                    'pagetitle' : '%d artiklar' % artiklar.count(),
+                    'print_on_demand': True }
 
     return HttpResponse(template.render(context, request))
 
@@ -165,19 +216,31 @@ def redigera(request, id = None):
 
     template = loader.get_template('talgoxe/redigera.html')
     pageTitle = 'Svenskt dialektlexikon'
-    if (artikel is None):
-        if (id is None):
-            artikel = None
-        else:
-            artikel = Artikel.objects.get(id=id)
-            artikel.collect()
-            pageTitle = artikel.lemma + "- " + pageTitle
+    if ((artikel is None) and (not (id is None))):
+        # Get article information.
+        artikel = Artikel.objects.get(id=id)
+        artikel.collect()
+        pageTitle = artikel.lemma + "- " + pageTitle
+        UserSettings.update_edit_article(request, artikel)
 
-    context = {
-        'artikel': artikel,
-        'pagetitle': pageTitle,
-        'clipboard': None
-    }
+    if (artikel is None):
+        context = {
+            'artikel': artikel,
+            'current_article' : UserSettings.get_edit_article(request),
+            'current_page': 'redigera',
+            'pagetitle': pageTitle,
+            'clipboard': None,
+            'create_article' : True
+        }
+    else:
+        context = {
+            'artikel': artikel,
+            'current_article' : UserSettings.get_edit_article(request),
+            'current_page': 'redigera',
+            'pagetitle': pageTitle,
+            'clipboard': None,
+            'edit_article' : True
+        }
 
     return HttpResponse(template.render(context, request))
 
@@ -231,6 +294,8 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
         search_article_field_content = Artikel.objects.filter(id__in = articleIds)
         artiklar += search_article_field_content
     context = {
+            'current_article' : UserSettings.get_edit_article(request),
+            'current_page': 'search',
             'q' : söksträng,
             'artiklar' : artiklar,
             'pagetitle' : '%d sökresultat för ”%s” (%s)' % (len(artiklar), söksträng, sök_överallt_eller_inte),
@@ -242,9 +307,7 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
 
 @login_required
 def update_clipboard(request):
-    userName = request.user.username
-    clipboards[userName] = request.POST.get('clipboard')
-
+    UserSettings.update_clipboard(request, request.POST.get('clipboard'))
     data = {
         'clipboardUpdated': True
     }
