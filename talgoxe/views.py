@@ -19,6 +19,16 @@ userSettings = {}
 class UserSettings:
 
     @staticmethod
+    def get_articles_html(request):
+        settings = UserSettings.get_settings(request)
+        if 'articlesHtml' in settings:
+            articles = settings['articlesHtml']
+        else:
+            articles = []
+        return articles
+
+
+    @staticmethod
     def get_clipboard(request):
         settings = UserSettings.get_settings(request)
         if 'clipboard' in settings:
@@ -50,6 +60,11 @@ class UserSettings:
     def update_clipboard(request, clipboard):
         settings = UserSettings.get_settings(request)
         settings['clipboard'] = clipboard
+
+    @staticmethod
+    def update_articles_html(request, articles):
+        settings = UserSettings.get_settings(request)
+        settings['articlesHtml'] = articles
 
     @staticmethod
     def update_edit_article(request, article):
@@ -137,6 +152,39 @@ def get_articles_by_search_criteria(request):
 
     articles_dictionary["articles"] = articles_array
     return JsonResponse(articles_dictionary, safe=False)
+
+def get_article_html(request, article):
+    string_builder = []
+    string_builder.append("<h2>Artikel</h2>")
+    string_builder.append("<p>")
+    template = loader.get_template('talgoxe/artikel.html')
+    context = {
+        'artikel': article,
+    }
+    string_builder.append(template.render(context, request))
+    # string_builder.append(article.lemma)
+    string_builder.append("</p>")
+    return ''.join(string_builder)
+
+@login_required
+def get_articles_html(request):
+    # Get articles.
+    articles = []
+    article_ids = request.POST.getlist('showArticleIds[]')
+    articles_database = Artikel.objects.filter(id__in=article_ids)
+    articles += articles_database
+    UserSettings.update_articles_html(request, articles)
+
+    # Get articles as HTML.
+    articles_html = ''
+    for article in articles:
+        article.collect()
+        articles_html += get_article_html(request, article)
+
+    data = {
+        'articlesHtml': articles_html
+    }
+    return JsonResponse(data)
 
 @login_required
 def get_clipboard(request):

@@ -7,6 +7,7 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name = 'index'),
     url(r'^get_articles_by_search_criteria', views.get_articles_by_search_criteria, name = 'get_articles_by_search_criteria'),
+    url(r'^get_articles_html', views.get_articles_html, name = 'get_articles_html'),
     url(r'^get_clipboard', views.get_clipboard, name = 'get_clipboard'),
     url(r'^update_clipboard', views.update_clipboard, name = 'update_clipboard'),
     url(r'^create', views.create, name = 'create'),

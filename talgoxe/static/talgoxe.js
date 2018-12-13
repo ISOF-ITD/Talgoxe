@@ -9,6 +9,39 @@ function isNotEmpty(val){
     return !isEmpty(val);
 }
 
+function showArticle(articleId) {
+    var showArticleIdsArray = [];
+    showArticleIdsArray.push(articleId);
+    var showArticleIds = { showArticleIds : showArticleIdsArray }
+
+    // Add token that confirms login to AJAX request.
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    });
+
+    // alert('Show article = ' + articleId);
+
+    // Get articles as html.
+    webAddress = $('.edit-article').attr('action');
+    webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+    webAddress = webAddress + "get_articles_html";
+    $.post(
+        webAddress,
+        showArticleIds,
+            function(result) {
+            // alert(JSON.stringify(result));
+            var appendTo = $('#artikel');
+            appendTo.empty();
+            appendTo.append(result.articlesHtml);
+        }
+    );
+
+    return false;
+}
+
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
         lastId = $('.add-row').last()[0].id;
@@ -283,8 +316,13 @@ $(document).ready(function() {
                                        rankString +
                                        result.articles[articleIndex].lemma +
                                        '</a>' +
+                                       '<button type="button" class="show-article" onclick="showArticle(' +
+                                       result.articles[articleIndex].id +
+                                       ')">Visa</button>' +
                                        '</li>');
                     }
+
+                    // $('.show-article').click(showArticle);
                     // alert(JSON.stringify(result));
                 }
                 else {
