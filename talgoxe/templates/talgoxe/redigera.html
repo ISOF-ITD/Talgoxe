@@ -6,23 +6,23 @@
   <tr>
     <td id="inmatning">
         <h2>Inmatning</h2>
-        {% if artikel %}
-            <form class="edit-article" action="{% url 'redigera' artikel.id %}" method="POST">
+        {% if edit_artikel %}
+            <form class="edit-article" action="{% url 'redigera' edit_artikel.id %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="clipboard" class="clipboard" value="{{ clipboard }}">
                 <ul id="input-control">
                 <li>SO&nbsp;&nbsp;:
-                    <input type="text" class='article-name' name="stickord" value="{{ artikel.lemma }}" size="16">
+                    <input type="text" class='article-name' name="stickord" value="{{ edit_artikel.lemma }}" size="16">
                     <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
                     <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"><br/>
                     <input type="submit" value="Kopiera" class="copy-rows" tabindex="-1">
                     <input type="submit" value="Klipp ut" class="cut-rows" tabindex="-1">
                     <input type="submit" value="Klistra in" class="paste-rows" tabindex="-1">
-                    <button type="button" class="show-current-article" onclick="showArticle({{artikel.id}})">Visa</button>
+                    <button type="button" class="show-current-article" onclick="showArticle({{edit_artikel.id}})">Visa</button>
                 </li>
                 </ul>
                 <ul class="lemma-list">
-                {% for d in artikel.spolar %}
+                {% for d in edit_artikel.spolar %}
                     <li id="data-{{ d.pos }}">
                       {% spaceless %}
                         <input type="text" size="3" name="type-{{ d.pos }}" value="{{ d.typ.format }}" id="type-{{ d.pos }}" class="d-type">
@@ -74,9 +74,11 @@
     </td>
     <td id="artikel">
         <h2>Artikel</h2>
-        {% if artikel %}
-            <p>{% include 'talgoxe/artikel.html' %}</p>
-        {% endif %}
+        <div class="show-articles-column">
+            {% for artikel in articles %}
+                <p>{% include 'talgoxe/artikel.html' %}</p>
+            {% endfor %}
+        </div>
     </td>
     <td id="new_search">
         <h2>S&ouml;k</h2>
@@ -96,7 +98,10 @@
                 </select>
                 <input type="text" id="search-string1" class="search-string" />
             </div>
-            <input type="submit" class="search-article-button" value="S&ouml;k" />
+            <p>
+                <input type="submit" class="search-article-button" value="S&ouml;k" />
+                <input type="submit" class="show-all-articles-button" value="Visa alla" />
+            </p>
             <div id="number-of-found-articles">Antal artiklar = 0</div>
             <ul class="search-article-result">
             </ul>

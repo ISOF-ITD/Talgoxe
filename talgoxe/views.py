@@ -155,14 +155,12 @@ def get_articles_by_search_criteria(request):
 
 def get_article_html(request, article):
     string_builder = []
-    string_builder.append("<h2>Artikel</h2>")
     string_builder.append("<p>")
     template = loader.get_template('talgoxe/artikel.html')
     context = {
         'artikel': article,
     }
     string_builder.append(template.render(context, request))
-    # string_builder.append(article.lemma)
     string_builder.append("</p>")
     return ''.join(string_builder)
 
@@ -176,13 +174,19 @@ def get_articles_html(request):
     UserSettings.update_articles_html(request, articles)
 
     # Get articles as HTML.
-    articles_html = ''
+    string_builder = []
+    if (len(articles) <= 1):
+        string_builder.append("<h2>Artikel</h2>")
+    if (len(articles) > 1):
+        string_builder.append("<h2>Artiklar</h2>")
+    string_builder.append('<div class="show-articles-column">')
     for article in articles:
         article.collect()
-        articles_html += get_article_html(request, article)
+        string_builder.append(get_article_html(request, article))
+    string_builder.append("</div>")
 
     data = {
-        'articlesHtml': articles_html
+        'articlesHtml': ''.join(string_builder)
     }
     return JsonResponse(data)
 
@@ -271,20 +275,27 @@ def redigera(request, id = None):
         pageTitle = artikel.lemma + "- " + pageTitle
         UserSettings.update_edit_article(request, artikel)
 
+    if (len(UserSettings.get_articles_html(request)) < 1):
+        articles = []
+        articles.append(artikel)
+        UserSettings.update_articles_html(request, articles)
+
     if (artikel is None):
         context = {
-            'artikel': artikel,
+            'articles': UserSettings.get_articles_html(request),
             'current_article' : UserSettings.get_edit_article(request),
             'current_page': 'redigera',
+            'edit_artikel': artikel,
             'pagetitle': pageTitle,
             'clipboard': None,
             'create_article' : True
         }
     else:
         context = {
-            'artikel': artikel,
+            'articles': UserSettings.get_articles_html(request),
             'current_article' : UserSettings.get_edit_article(request),
             'current_page': 'redigera',
+            'edit_artikel': artikel,
             'pagetitle': pageTitle,
             'clipboard': None,
             'edit_article' : True

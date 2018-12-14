@@ -10,6 +10,7 @@ function isNotEmpty(val){
 }
 
 function showArticle(articleId) {
+    // alert(JSON.stringify(articleId));
     var showArticleIdsArray = [];
     showArticleIdsArray.push(articleId);
     var showArticleIds = { showArticleIds : showArticleIdsArray }
@@ -32,12 +33,49 @@ function showArticle(articleId) {
         webAddress,
         showArticleIds,
             function(result) {
-            // alert(JSON.stringify(result));
             var appendTo = $('#artikel');
             appendTo.empty();
             appendTo.append(result.articlesHtml);
         }
     );
+
+    return false;
+}
+
+function showAllArticles(event) {
+    event.preventDefault();
+    // alert(JSON.stringify(idArray));
+
+    var showArticleIdsArray = $(".search-article-result a").map(function(){
+        var webAddress = this.href;
+        var indexOf = webAddress.lastIndexOf('/');
+        return webAddress.substring(indexOf + 1);
+    }).get();
+    var showArticleIds = { showArticleIds : showArticleIdsArray }
+
+    if (isNotEmpty(showArticleIdsArray)) {
+        // Add token that confirms login to AJAX request.
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+
+        // Get articles as html.
+        webAddress = $('.edit-article').attr('action');
+        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress + "get_articles_html";
+        $.post(
+            webAddress,
+            showArticleIds,
+                function(result) {
+                var appendTo = $('#artikel');
+                appendTo.empty();
+                appendTo.append(result.articlesHtml);
+            }
+        );
+    }
 
     return false;
 }
@@ -100,6 +138,8 @@ $(document).ready(function() {
     $('.remove-article').click(removeArticle);
 
     $('.search-article-button').click(searchArticles2);
+
+    $('.show-all-articles-button').click(showAllArticles);
 
     function removeRow(event) {
         event.preventDefault();
@@ -305,20 +345,25 @@ $(document).ready(function() {
                             rankString = '';
                         }
 
+                        var onClick = ' onclick="showArticle(' +
+                                       result.articles[articleIndex].id +
+                                       ')"';
                         appendTo.append('<li class="nobullet search-article-result-row">' +
                                        '<a href="'+
                                        webAddress +
                                        'redigera/' +
                                        result.articles[articleIndex].id +
                                        '" value="' +
-                                       result.articles[articleIndex].lemma +
-                                       '">' +
+                                       result.articles[articleIndex].id +
+                                       '"' +
+                                       onClick +
+                                       '>' +
                                        rankString +
                                        result.articles[articleIndex].lemma +
                                        '</a>' +
-                                       '<button type="button" class="show-article" onclick="showArticle(' +
-                                       result.articles[articleIndex].id +
-                                       ')">Visa</button>' +
+                                       '<button type="button" class="show-article"' +
+                                       onClick +
+                                       '>Visa</button>' +
                                        '</li>');
                     }
 

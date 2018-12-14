@@ -13,8 +13,6 @@ body {
 
 #artikel {
   vertical-align: top;
-  overflow-y: scroll;
-  overflow-x: hidden;
   border: 1px solid black;
   width: 28%;
   height: 480px;
@@ -80,8 +78,9 @@ body {
   border: 1px solid black;
   width: 47%;
   height: 410px;
-  margin-right: 2%;
   font-family: 'Courier';
+  padding: 0px;
+  vertical-align: top;
 }
 
 .d-value {
@@ -114,13 +113,12 @@ body {
 
 .lemma-list {
   border: 1px solid black;
-  width: 99%;
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 450px;
+  height: 510px;
   margin-bottom: 0%;
-  margin-left: 3px;
-  margin-right: 3px;
+  margin-left: 0px;
+  margin-right: 0px;
   margin-top: 0%;
   font-family: 'Courier';
   padding-inline-start: 0px;
@@ -148,6 +146,13 @@ body {
 .select-field {
   margin-left: 4px;
   margin-top: 6px;
+}
+
+.show-articles-column {
+  border: 1px solid black;
+  height: 550px;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 #number-of-found-articles {
@@ -185,6 +190,10 @@ body {
   margin-bottom: 2px;
   margin-left: 2px;
   padding: 0px 0px;
+}
+
+.show-all-articles-button {
+  float: right;
 }
 
 #ordlista {
