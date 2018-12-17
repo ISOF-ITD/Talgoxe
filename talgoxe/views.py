@@ -27,7 +27,6 @@ class UserSettings:
             articles = []
         return articles
 
-
     @staticmethod
     def get_clipboard(request):
         settings = UserSettings.get_settings(request)
@@ -45,6 +44,15 @@ class UserSettings:
         else:
             editArticle = None
         return editArticle
+
+    @staticmethod
+    def get_search_articles(request):
+        settings = UserSettings.get_settings(request)
+        if 'searchArticles' in settings:
+            articles = settings['searchArticles']
+        else:
+            articles = []
+        return articles
 
     @staticmethod
     def get_settings(request):
@@ -70,6 +78,13 @@ class UserSettings:
     def update_edit_article(request, article):
         settings = UserSettings.get_settings(request)
         settings['editArticle'] = article
+
+    @staticmethod
+    def update_search_articles(request, articles):
+        settings = UserSettings.get_settings(request)
+        settings['searchArticles'] = articles
+        for article in articles:
+            article.checked = False
 
 @login_required
 def artikel(request, id):
@@ -138,6 +153,7 @@ def get_articles_by_search_criteria(request):
     search_criteria.search_string = search_string
     search_criteria.search_type = search_type
     articles = ArticleManager.get_articles_by_search_criteria(search_criteria)
+    UserSettings.update_search_articles(request, articles)
 
     articles_dictionary = {}
     articles_array = []
@@ -288,7 +304,8 @@ def redigera(request, id = None):
             'edit_artikel': artikel,
             'pagetitle': pageTitle,
             'clipboard': None,
-            'create_article' : True
+            'create_article' : True,
+            'search_articles' : UserSettings.get_search_articles(request)
         }
     else:
         context = {
@@ -298,7 +315,8 @@ def redigera(request, id = None):
             'edit_artikel': artikel,
             'pagetitle': pageTitle,
             'clipboard': None,
-            'edit_article' : True
+            'edit_article' : True,
+            'search_articles': UserSettings.get_search_articles(request)
         }
 
     return HttpResponse(template.render(context, request))
@@ -363,6 +381,21 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
         }
 
     return HttpResponse(template.render(context, request))
+
+@login_required
+def update_checked_articles(request):
+    article_ids_dictionary = {}
+    article_ids = request.POST.getlist('checkedArticleIds[]')
+    for article_id in article_ids:
+        article_ids_dictionary[int(article_id)] = article_id
+    for article in UserSettings.get_search_articles(request):
+        article.checked = (article.id in article_ids_dictionary)
+    articles = UserSettings.get_search_articles(request)
+
+    data = {
+        'checkedArticlesUpdated': True
+    }
+    return JsonResponse(data)
 
 @login_required
 def update_clipboard(request):

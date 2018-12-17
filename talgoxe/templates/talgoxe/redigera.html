@@ -2,7 +2,7 @@
 
 {% include "talgoxe/navigation.html" %}
 
-<table style="margin-top:70px;" id="handle-article">
+<table id="handle-article">
   <tr>
     <td id="inmatning">
         <h2>Inmatning</h2>
@@ -100,13 +100,27 @@
             </div>
             <input type="submit" class="search-article-button" value="S&ouml;k" />
             <div id="number-of-found-articles">
-                Antal artiklar = 0
+                Antal artiklar = {{search_articles|length}}
             </div>
             <p>
                 <input type="submit" class="show-selected-articles-button" value="Visa valda" />
                 <input type="submit" class="show-all-articles-button" value="Visa alla" />
             </p>
             <ul class="search-article-result">
+                {% for search_article in search_articles %}
+                    <li class="nobullet search-article-result-row">
+                        <a href="{% url 'redigera' search_article.id %}" value="{{search_article.id}}" onClick="showArticle({{search_article.id}})" />
+                            {% if search_article.rank %}
+                                <sup>search_article.rank</sup>
+                            {% endif %}
+                            {{search_article.lemma}}
+                        </a>
+                        <button type="button" class="show-article" onClick="showArticle({{search_article.id}})">Visa</button>
+                        <input type="checkbox" class="select-article" onClick="showArticleCheckedChange({{search_article.id}})"
+                            {% if search_article.checked %} checked {% endif %}
+                        >
+                    </li>
+                {% endfor %}
             </ul>
         </form>
     </td>

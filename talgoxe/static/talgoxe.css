@@ -20,7 +20,11 @@ body {
   margin-right: 2%;
   font-family: 'Droid Serif', Georgia, Times, serif, roman;
   background: white;
-  padding: 4px;
+  padding: 0px;
+}
+
+#artikel h2 {
+  margin: 4px;
 }
 
 #new_search {
@@ -96,6 +100,10 @@ body {
   font-family: 'Courier';
   padding: 0px;
   vertical-align: top;
+}
+
+#inmatning h2 {
+  margin: 4px;
 }
 
 .d-value {
@@ -179,7 +187,7 @@ body {
 
 .show-articles-column {
   border: 1px solid black;
-  height: 550px;
+  height: 560px;
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -409,11 +417,12 @@ a#skapa-odf, a#skapa-docx {
 
 .navigation{
     background-color: #f3f3f3;
-    margin: 0px;
+    margin-bottom: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
     padding: 0;
-    position: fixed;
-    top: 10px;
-    width: 98%;
+    width: 100%;
 }
 
 .navigation ul {

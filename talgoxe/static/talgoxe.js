@@ -118,6 +118,43 @@ function showSelectedArticles(event) {
     return false;
 }
 
+
+function showArticleCheckedChange(articleId) {
+    var checkedArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
+        var webAddress = this.href;
+        var indexOf = webAddress.lastIndexOf('/');
+        return webAddress.substring(indexOf + 1);
+    }).get();
+    var checkedArticles = { checkedArticleIds : checkedArticleIdsArray };
+
+    // Add token that confirms login to AJAX request.
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    });
+
+    var webAddress = $('.edit-article').attr('action');
+    webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+    webAddress = webAddress + "update_checked_articles";
+    $.post(
+        webAddress,
+        checkedArticles
+    );
+    // alert(JSON.stringify(webAddress));
+    return false;
+}
+/*
+
+        webAddress,
+        checkedArticleIds
+    );
+    alert(JSON.stringify(checkedArticleIds));
+
+    return false;
+} */
+
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
         lastId = $('.add-row').last()[0].id;
@@ -404,7 +441,9 @@ $(document).ready(function() {
                                        '<button type="button" class="show-article"' +
                                        onClick +
                                        '>Visa</button>' +
-                                       '<input type="checkbox" class="select-article">' +
+                                       '<input type="checkbox" class="select-article" ' +
+                                       'onClick="showArticleCheckedChange(' +
+                                       result.articles[articleIndex].id + ')">' +
                                        '</li>');
                     }
 
