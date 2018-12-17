@@ -36,9 +36,24 @@ body {
   padding: 4px;
 }
 
+.select-article {
+  float: right;
+  margin-right: 4px;
+  margin-top: 2px;
+}
+
+.search-article-button {
+  display: inline;
+}
+
 .search-article div {
   border: 1px solid black;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
+}
+
+.search-article p {
+  margin-bottom: 4px;
+  margin-top: 4px;
 }
 
 .search-select {
@@ -141,6 +156,20 @@ body {
 .search-article-result li {
   margin-top: 3px;
   margin-left: 3px;
+}
+
+.search-article-result button {
+  border-width: 2px;
+  border-style: outset;
+  border-color: buttonface;
+  margin-bottom: 4px;
+  margin-left: 2px;
+  margin-right: 6px;
+  margin-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
 }
 
 .select-field {

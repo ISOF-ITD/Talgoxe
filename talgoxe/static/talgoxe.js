@@ -80,6 +80,44 @@ function showAllArticles(event) {
     return false;
 }
 
+function showSelectedArticles(event) {
+    event.preventDefault();
+
+    var showArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
+        var webAddress = this.href;
+        var indexOf = webAddress.lastIndexOf('/');
+        return webAddress.substring(indexOf + 1);
+    }).get();
+    var showArticleIds = { showArticleIds : showArticleIdsArray }
+    // alert(JSON.stringify(showArticleIds));
+
+    if (isNotEmpty(showArticleIdsArray)) {
+        // Add token that confirms login to AJAX request.
+        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        });
+
+        // Get articles as html.
+        webAddress = $('.edit-article').attr('action');
+        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress + "get_articles_html";
+        $.post(
+            webAddress,
+            showArticleIds,
+                function(result) {
+                var appendTo = $('#artikel');
+                appendTo.empty();
+                appendTo.append(result.articlesHtml);
+            }
+        );
+    }
+
+    return false;
+}
+
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
         lastId = $('.add-row').last()[0].id;
@@ -140,6 +178,8 @@ $(document).ready(function() {
     $('.search-article-button').click(searchArticles2);
 
     $('.show-all-articles-button').click(showAllArticles);
+
+    $('.show-selected-articles-button').click(showSelectedArticles);
 
     function removeRow(event) {
         event.preventDefault();
@@ -364,6 +404,7 @@ $(document).ready(function() {
                                        '<button type="button" class="show-article"' +
                                        onClick +
                                        '>Visa</button>' +
+                                       '<input type="checkbox" class="select-article">' +
                                        '</li>');
                     }
 
