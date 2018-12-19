@@ -873,3 +873,22 @@ class Exporter:
 
         return join('ord', filename)
 
+    def export_articles(self, articles, userName):
+        # Get temp file.
+        self.dirname = mkdtemp('', 'SDLartikel')
+        self.filename = join(self.dirname, 'sdl.%s' % self.format)
+        self.start_document()
+
+        # Write article information to file.
+        filename = f'{userName}-sdl.{self.format}'
+        for article in articles:
+            self.generate_paragraph(article)
+        self.save_document()
+
+        # Copy temp file to output file.
+        staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
+        filepath = join(staticpath, filename)
+        copyfile(self.filename, filepath)
+
+        return filepath
+

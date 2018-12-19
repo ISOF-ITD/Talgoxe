@@ -118,7 +118,6 @@ function showSelectedArticles(event) {
     return false;
 }
 
-
 function showArticleCheckedChange(articleId) {
     var checkedArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
         var webAddress = this.href;
@@ -738,16 +737,17 @@ $(document).ready(function() {
     $('#skapa-pdf').click(function(event) { createPDF(event.currentTarget); });
 
     function createPDF(element) {
-        console.log(element);
+        //console.log(element);
         $(element).html("Förbereder&nbsp;PDF...");
         articles = collectArticles();
-        console.log("Article IDs:");
-        console.log(articles);
+        //console.log("Article IDs:");
+        //console.log(articles);
         url = printableEndpoint('pdf', articles);
-        console.log("Getting " + url);
+        alert(JSON.stringify(url));
+        //console.log("Getting " + url);
         $.get(url).done(function(data) {
-            console.log("GET completed!  Data:");
-            console.log(data);
+            //console.log("GET completed!  Data:");
+            //console.log(data);
             $(element).off('click');
             $(element).attr("href", data.trim());
             $(element).html("Ladda&nbsp;ner&nbsp;PDF");

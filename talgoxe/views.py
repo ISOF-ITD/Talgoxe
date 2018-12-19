@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import os
+
 from collections import OrderedDict
 from re import match
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.template import loader, Context, RequestContext
 from django.urls import reverse
 from django.utils.datastructures import MultiValueDictKeyError
+from django.conf import settings
 
 from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel, Exporter, Spole, UnsupportedFormat
 
@@ -212,6 +215,57 @@ def get_clipboard(request):
         'clipboard': UserSettings.get_clipboard(request)
     }
     return JsonResponse(data)
+
+@login_required
+def get_odf_file(request):
+    articles = UserSettings.get_articles_html(request)
+    if (articles is None) or (len(articles) < 1):
+        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
+        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
+        return response
+
+    exporter = Exporter('odt')
+    file_path = exporter.export_articles(articles, request.user.username)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.oasis.opendocument.text")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+
+@login_required
+def get_pdf_file(request):
+    articles = UserSettings.get_articles_html(request)
+    if (articles is None) or (len(articles) < 1):
+        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
+        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
+        return response
+
+    exporter = Exporter('pdf')
+    file_path = exporter.export_articles(articles, request.user.username)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/pdf")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
+
+@login_required
+def get_word_file(request):
+    articles = UserSettings.get_articles_html(request)
+    if (articles is None) or (len(articles) < 1):
+        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
+        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
+        return response
+
+    exporter = Exporter('docx')
+    file_path = exporter.export_articles(articles, request.user.username)
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+            return response
+    raise Http404
 
 @login_required
 def index(request):

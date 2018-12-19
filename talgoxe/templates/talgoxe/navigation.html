@@ -26,9 +26,9 @@
         <li class="dropdown">
             <a href="javascript:void(0)" class="dropbtn">Skapa fil &darr;</a>
             <div class="dropdown-content">
-                <a href="">ODF fil</a>
-                <a href="">PDF fil</a>
-                <a href="">Word fil</a>
+                <a href="{% url 'get_odf_file' %}">ODF fil</a>
+                <a href="{% url 'get_pdf_file' %}" target="_blank">PDF fil</a>
+                <a href="{% url 'get_word_file' %}">Word fil</a>
             </div>
         </li>
         <li>
