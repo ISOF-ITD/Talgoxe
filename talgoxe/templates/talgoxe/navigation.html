@@ -27,7 +27,11 @@
             <a href="javascript:void(0)" class="dropbtn">Skapa fil &darr;</a>
             <div class="dropdown-content">
                 <a href="{% url 'get_odf_file' %}">ODF fil</a>
-                <a href="{% url 'get_pdf_file' %}" target="_blank">PDF fil</a>
+                {% if has_articles_html %}
+                    <a id="get-pdf-file" href="{% url 'get_pdf_file' %}" target="_blank">PDF fil</a>
+                {% else %}
+                    <a id="get-pdf-file" href="{% url 'get_pdf_file' %}">PDF fil</a>
+                {% endif %}
                 <a href="{% url 'get_word_file' %}">Word fil</a>
             </div>
         </li>

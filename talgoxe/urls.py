@@ -24,5 +24,5 @@ urlpatterns = [
     url(r'^artikel/(?P<id>\d+)?$', views.artikel, name = 'artikel'),
     url(r'^print-on-demand$', views.print_on_demand, name = 'print_on_demand'),
     url(r'^print-on-demand/(?P<format>.*)', views.print, name = 'print'),
-    url(r'^logout', views.easylogout, name = 'easylogout'),
+    url(r'^logout', views.easylogout, name = 'easylogout')
 ]

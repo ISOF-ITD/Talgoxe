@@ -68,6 +68,11 @@ class UserSettings:
         return settings
 
     @staticmethod
+    def has_articles_html(request):
+        articles_html = UserSettings.get_articles_html(request)
+        return (len(articles_html) > 0) and not (articles_html[0] is None)
+
+    @staticmethod
     def update_clipboard(request, clipboard):
         settings = UserSettings.get_settings(request)
         settings['clipboard'] = clipboard
@@ -91,12 +96,12 @@ class UserSettings:
 
 @login_required
 def artikel(request, id):
+    # This method is used in AJAX-requests and the returned HTML is used as data.
     artikel = Artikel.objects.get(id = id)
     template = loader.get_template('talgoxe/artikel.html')
     artikel.collect()
-    context = { 'current_article' : artikel,
-                'current_page' : 'artikel',
-                'format' : format }
+    context = { 'artikel' : artikel, 'format' : format }
+
     return HttpResponse(template.render(context, request))
 
 @login_required
@@ -111,6 +116,7 @@ def artikel_efter_stickord(request, stickord):
             'artiklar' : artiklar,
             'current_article': artikel,
             'current_page': 'stickord',
+            'has_articles_html': UserSettings.has_articles_html(request),
         }
         return HttpResponse(template.render(context, request))
 
@@ -219,7 +225,7 @@ def get_clipboard(request):
 @login_required
 def get_odf_file(request):
     articles = UserSettings.get_articles_html(request)
-    if (articles is None) or (len(articles) < 1):
+    if (not (UserSettings.has_articles_html(request))):
         response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
         response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
         return response
@@ -236,7 +242,7 @@ def get_odf_file(request):
 @login_required
 def get_pdf_file(request):
     articles = UserSettings.get_articles_html(request)
-    if (articles is None) or (len(articles) < 1):
+    if (not (UserSettings.has_articles_html(request))):
         response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
         response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
         return response
@@ -253,7 +259,7 @@ def get_pdf_file(request):
 @login_required
 def get_word_file(request):
     articles = UserSettings.get_articles_html(request)
-    if (articles is None) or (len(articles) < 1):
+    if (not (UserSettings.has_articles_html(request))):
         response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
         response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
         return response
@@ -306,6 +312,7 @@ def print_on_demand(request):
                 artiklar += hel_bokstav
         context = { 'current_article' : UserSettings.get_edit_article(request),
                     'artiklar' : artiklar,
+                    'has_articles_html': UserSettings.has_articles_html(request),
                     'redo' : True,
                     'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
                     'pagetitle' : '%d artiklar' % len(artiklar),
@@ -316,6 +323,7 @@ def print_on_demand(request):
         bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
         context = { 'current_article' : UserSettings.get_edit_article(request),
                     'artiklar' : artiklar,
+                    'has_articles_html': UserSettings.has_articles_html(request),
                     'checkboxes' : True,
                     'bokstäver' : bokstäver,
                     'pagetitle' : '%d artiklar' % artiklar.count(),
@@ -356,6 +364,7 @@ def redigera(request, id = None):
             'current_article' : UserSettings.get_edit_article(request),
             'current_page': 'redigera',
             'edit_artikel': artikel,
+            'has_articles_html': UserSettings.has_articles_html(request),
             'pagetitle': pageTitle,
             'clipboard': None,
             'create_article' : True,
@@ -367,6 +376,7 @@ def redigera(request, id = None):
             'current_article' : UserSettings.get_edit_article(request),
             'current_page': 'redigera',
             'edit_artikel': artikel,
+            'has_articles_html': UserSettings.has_articles_html(request),
             'pagetitle': pageTitle,
             'clipboard': None,
             'edit_article' : True,
@@ -429,6 +439,7 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
             'current_page': 'search',
             'q' : söksträng,
             'artiklar' : artiklar,
+            'has_articles_html': UserSettings.has_articles_html(request),
             'pagetitle' : '%d sökresultat för ”%s” (%s)' % (len(artiklar), söksträng, sök_överallt_eller_inte),
             'uri' : uri,
             'sök_överallt' : sök_överallt,

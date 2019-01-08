@@ -36,6 +36,7 @@ function showArticle(articleId) {
             var appendTo = $('#artikel');
             appendTo.empty();
             appendTo.append(result.articlesHtml);
+            getPdfFile = $('#get-pdf-file').attr('target', '_blank')
         }
     );
 
@@ -73,6 +74,7 @@ function showAllArticles(event) {
                 var appendTo = $('#artikel');
                 appendTo.empty();
                 appendTo.append(result.articlesHtml);
+                getPdfFile = $('#get-pdf-file').attr('target', '_blank')
             }
         );
     }
@@ -111,6 +113,7 @@ function showSelectedArticles(event) {
                 var appendTo = $('#artikel');
                 appendTo.empty();
                 appendTo.append(result.articlesHtml);
+                getPdfFile = $('#get-pdf-file').attr('target', '_blank')
             }
         );
     }
