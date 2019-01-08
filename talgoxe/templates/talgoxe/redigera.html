@@ -83,7 +83,7 @@
     <td id="new_search">
         <h2>S&ouml;k</h2>
         <form class="search-article" action="{% url 'redigera' %}" method="POST">
-            <div>
+            <div class="search-article-criteria">
                 <select id="search-type1" class="search-select">
                   <option value="Lemma">stickord</option>
                   <option value="ArticleItem">artikeldel</option>
@@ -98,14 +98,16 @@
                 </select>
                 <input type="text" id="search-string1" class="search-string" />
             </div>
-            <input type="submit" class="search-article-button" value="S&ouml;k" />
-            <div id="number-of-found-articles">
-                Antal artiklar = {{search_articles|length}}
+            <div>
+                <input type="submit" class="search-article-button" value="S&ouml;k" />
+                <div id="number-of-found-articles">
+                    Antal artiklar = {{search_articles|length}}
+                </div>
             </div>
-            <p>
+            <div>
                 <input type="submit" class="show-selected-articles-button" value="Visa valda" />
                 <input type="submit" class="show-all-articles-button" value="Visa alla" />
-            </p>
+            </div>
             <ul class="search-article-result">
                 {% for search_article in search_articles %}
                     <li class="nobullet search-article-result-row">

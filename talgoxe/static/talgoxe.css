@@ -37,7 +37,7 @@ body {
   margin-left: 2%;
   margin-right: 2%;
   font-family: 'Droid Serif', Georgia, Times, serif, roman;
-  padding: 4px;
+  padding: 0px;
 }
 
 .select-article {
@@ -50,12 +50,12 @@ body {
   display: inline;
 }
 
-.search-article div {
+.search-article-criteria {
   border: 1px solid black;
   margin-bottom: 4px;
 }
 
-.search-article p {
+.search-article div {
   margin-bottom: 4px;
   margin-top: 4px;
 }
@@ -106,6 +106,14 @@ body {
   margin: 4px;
 }
 
+#new_search h2 {
+  margin: 4px;
+}
+
+#new_search div {
+  margin: 4px;
+}
+
 .d-value {
   font-family: 'Courier';
 }
@@ -149,13 +157,12 @@ body {
 
 .search-article-result {
   border: 1px solid black;
-  width: 99%;
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 410px;
+  height: 445px;
   margin-bottom: 0px;
   margin-left: 0px;
-  margin-right: 2px;
+  margin-right: 0px;
   margin-top: 2px;
   font-family: 'Courier';
   padding-inline-start: 0px;
