@@ -147,15 +147,6 @@ function showArticleCheckedChange(articleId) {
     // alert(JSON.stringify(webAddress));
     return false;
 }
-/*
-
-        webAddress,
-        checkedArticleIds
-    );
-    alert(JSON.stringify(checkedArticleIds));
-
-    return false;
-} */
 
 $(document).ready(function() {
     if ($('.add-row').length > 0) {
@@ -377,6 +368,7 @@ $(document).ready(function() {
         event.preventDefault();
 
         // Get data from html page.
+        var searchCriteriaArray = [];
         compareType = $("#search-compare-type1").val();
         searchString = $("#search-string1").val();
         searchType = $("#search-type1").val();
@@ -384,8 +376,24 @@ $(document).ready(function() {
                                search_string: searchString,
                                search_type: searchType
                              };
-        var articleSearchCriteria = { searchCriteriaArray : [] }
-        articleSearchCriteria.searchCriteriaArray.push(searchCriteria)
+        searchCriteriaArray.push(searchCriteria)
+        compareType = $("#search-compare-type2").val();
+        searchString = $("#search-string2").val();
+        searchType = $("#search-type2").val();
+        searchCriteria = { compare_type: compareType,
+                               search_string: searchString,
+                               search_type: searchType
+                             };
+        searchCriteriaArray.push(searchCriteria)
+        compareType = $("#search-compare-type3").val();
+        searchString = $("#search-string3").val();
+        searchType = $("#search-type3").val();
+        searchCriteria = { compare_type: compareType,
+                               search_string: searchString,
+                               search_type: searchType
+                             };
+        searchCriteriaArray.push(searchCriteria)
+        var articleSearchCriteria = { searchCriteriaArray : searchCriteriaArray }
         // alert(compareType + ' ' + searchString + ' ' + searchType);
 
         // Get articles from server.

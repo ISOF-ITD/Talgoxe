@@ -154,6 +154,7 @@ def easylogout(request):
 
 @login_required
 def get_articles_by_search_criteria(request):
+    search_criteria_list = [];
     compare_type = request.POST.get('searchCriteriaArray[0][compare_type]')
     search_string = request.POST.get('searchCriteriaArray[0][search_string]')
     search_type = request.POST.get('searchCriteriaArray[0][search_type]')
@@ -161,7 +162,24 @@ def get_articles_by_search_criteria(request):
     search_criteria.compare_type = compare_type
     search_criteria.search_string = search_string
     search_criteria.search_type = search_type
-    articles = ArticleManager.get_articles_by_search_criteria(search_criteria)
+    search_criteria_list.append(search_criteria)
+    compare_type = request.POST.get('searchCriteriaArray[1][compare_type]')
+    search_string = request.POST.get('searchCriteriaArray[1][search_string]')
+    search_type = request.POST.get('searchCriteriaArray[1][search_type]')
+    search_criteria = ArticleSearchCriteria()
+    search_criteria.compare_type = compare_type
+    search_criteria.search_string = search_string
+    search_criteria.search_type = search_type
+    search_criteria_list.append(search_criteria)
+    compare_type = request.POST.get('searchCriteriaArray[2][compare_type]')
+    search_string = request.POST.get('searchCriteriaArray[2][search_string]')
+    search_type = request.POST.get('searchCriteriaArray[2][search_type]')
+    search_criteria = ArticleSearchCriteria()
+    search_criteria.compare_type = compare_type
+    search_criteria.search_string = search_string
+    search_criteria.search_type = search_type
+    search_criteria_list.append(search_criteria)
+    articles = ArticleManager.get_articles_by_search_criteria(search_criteria_list)
     UserSettings.update_search_articles(request, articles)
 
     articles_dictionary = {}

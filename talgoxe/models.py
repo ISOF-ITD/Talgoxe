@@ -24,6 +24,9 @@ def is_empty_string(string):
         return True
     return (len(string) < 1)
 
+def is_not_empty_string(string):
+    return not is_empty_string(string)
+
 class UnsupportedFormat(Exception):
   pass
 
@@ -347,10 +350,24 @@ class ArticleSearchCriteria:
 class ArticleManager:
 
     @staticmethod
-    def get_articles_by_search_criteria(search_criteria):
-        if (search_criteria is None):
-            raise ValueError("Article search critera must be specified")
+    def get_articles_by_search_criteria(search_criteria_list):
+        if (ArticleManager.is_empty_search_criteria(search_criteria_list)):
+            return []
 
+        article_search_result = None
+        for search_criteria in search_criteria_list:
+            if (not (is_empty_string(search_criteria.search_string))):
+                articles = ArticleManager.get_articles_by_search_criteria2(search_criteria)
+                if (article_search_result is None):
+                    article_search_result = articles
+                else:
+                    article_search_result = ArticleManager.get_subset(article_search_result, articles)
+
+        if (article_search_result is None):
+            article_search_result = []
+        return article_search_result
+
+    def get_articles_by_search_criteria2(search_criteria):
         articles = []
         search_articles = None
         if (not (is_empty_string(search_criteria.search_string))):
@@ -409,6 +426,39 @@ class ArticleManager:
             articles += search_articles
 
         return articles
+
+
+    @staticmethod
+    def get_subset(articles1, articles2):
+        if (len(articles1) < 1) or (articles1[0] is None):
+            return []
+        if (len(articles2) < 1) or (articles2[0] is None):
+            return []
+
+        article_dictionary = {}
+        for article in articles2:
+            article_dictionary[article.id] = article
+
+        index = len(articles1) - 1
+        while (index >= 0):
+            if (not (articles1[index].id in article_dictionary)):
+                articles1.remove(articles1[index])
+            index -= 1
+
+        return articles1
+
+    @staticmethod
+    def is_empty_search_criteria(search_criteria_list):
+        if (search_criteria_list is None):
+            return True;
+        if (len(search_criteria_list) < 1):
+            return True;
+        is_search_string_found = False
+        for search_criteria in search_criteria_list:
+            if (is_not_empty_string(search_criteria.search_string)):
+                is_search_string_found = True
+        return not is_search_string_found
+
 
 article_types_by_abbreviation = {}
 article_types_by_id = {}
