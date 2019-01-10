@@ -85,48 +85,48 @@
         <form class="search-article" action="{% url 'redigera' %}" method="POST">
             <div class="search-article-criteria">
                 <select id="search-type1" class="search-select">
-                  <option value="Lemma">stickord</option>
-                  <option value="ArticleItem">artikeldel</option>
-                  <option value="ArticleItemType">artikeldelstyp</option>
-                  <option value="All">alla</option>
+                  <option value="Lemma" {% if search_criteria_one.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
+                  <option value="ArticleItem" {% if search_criteria_one.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
+                  <option value="ArticleItemType" {% if search_criteria_one.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
+                  <option value="All" {% if search_criteria_one.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
                 </select>
                 <select id="search-compare-type1" class="search-select search-compare-type">
-                  <option value="StartsWith">b&ouml;rjar med</option>
-                  <option value="Contains">inneh&aring;ller</option>
-                  <option value="EndWith">slutar med</option>
-                  <option value="EqualTo">lika med</option>
+                  <option value="StartsWith" {% if search_criteria_one.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>
+                  <option value="Contains" {% if search_criteria_one.compare_type == 'Contains' %}selected="selected"{% endif %}>inneh&aring;ller</option>
+                  <option value="EndWith" {% if search_criteria_one.compare_type == 'EndWith' %}selected="selected"{% endif %}>slutar med</option>
+                  <option value="EqualTo" {% if search_criteria_one.compare_type == 'EqualTo' %}selected="selected"{% endif %}>lika med</option>
                 </select>
-                <input type="text" id="search-string1" class="search-string" />
+                <input type="text" id="search-string1" class="search-string" value="{{ search_criteria_one.search_string }}" />
             </div>
             <div class="search-article-criteria">
                 <select id="search-type2" class="search-select">
-                  <option value="Lemma">stickord</option>
-                  <option value="ArticleItem">artikeldel</option>
-                  <option value="ArticleItemType">artikeldelstyp</option>
-                  <option value="All">alla</option>
+                  <option value="Lemma" {% if search_criteria_two.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
+                  <option value="ArticleItem" {% if search_criteria_two.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
+                  <option value="ArticleItemType" {% if search_criteria_two.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
+                  <option value="All" {% if search_criteria_two.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
                 </select>
                 <select id="search-compare-type2" class="search-select search-compare-type">
-                  <option value="StartsWith">b&ouml;rjar med</option>
-                  <option value="Contains">inneh&aring;ller</option>
-                  <option value="EndWith">slutar med</option>
-                  <option value="EqualTo">lika med</option>
+                  <option value="StartsWith" {% if search_criteria_two.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>
+                  <option value="Contains" {% if search_criteria_two.compare_type == 'Contains' %}selected="selected"{% endif %}>inneh&aring;ller</option>
+                  <option value="EndWith" {% if search_criteria_two.compare_type == 'EndWith' %}selected="selected"{% endif %}>slutar med</option>
+                  <option value="EqualTo" {% if search_criteria_two.compare_type == 'EqualTo' %}selected="selected"{% endif %}>lika med</option>
                 </select>
-                <input type="text" id="search-string2" class="search-string" />
+                <input type="text" id="search-string2" class="search-string" value="{{ search_criteria_two.search_string }}"  />
             </div>
             <div class="search-article-criteria">
                 <select id="search-type3" class="search-select">
-                  <option value="Lemma">stickord</option>
-                  <option value="ArticleItem">artikeldel</option>
-                  <option value="ArticleItemType">artikeldelstyp</option>
-                  <option value="All">alla</option>
+                  <option value="Lemma" {% if search_criteria_three.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
+                  <option value="ArticleItem" {% if search_criteria_three.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
+                  <option value="ArticleItemType" {% if search_criteria_three.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
+                  <option value="All" {% if search_criteria_three.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
                 </select>
                 <select id="search-compare-type3" class="search-select search-compare-type">
-                  <option value="StartsWith">b&ouml;rjar med</option>
-                  <option value="Contains">inneh&aring;ller</option>
-                  <option value="EndWith">slutar med</option>
-                  <option value="EqualTo">lika med</option>
+                  <option value="StartsWith" {% if search_criteria_three.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>
+                  <option value="Contains" {% if search_criteria_three.compare_type == 'Contains' %}selected="selected"{% endif %}>inneh&aring;ller</option>
+                  <option value="EndWith" {% if search_criteria_three.compare_type == 'EndWith' %}selected="selected"{% endif %}>slutar med</option>
+                  <option value="EqualTo" {% if search_criteria_three.compare_type == 'EqualTo' %}selected="selected"{% endif %}>lika med</option>
                 </select>
-                <input type="text" id="search-string3" class="search-string" />
+                <input type="text" id="search-string3" class="search-string"  value="{{ search_criteria_three.search_string }}" />
             </div>
             <div>
                 <input type="submit" class="search-article-button" value="S&ouml;k" />

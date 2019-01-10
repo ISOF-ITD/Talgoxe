@@ -58,6 +58,18 @@ class UserSettings:
         return articles
 
     @staticmethod
+    def get_search_criteria(request):
+        settings = UserSettings.get_settings(request)
+        if 'searchCriteria' in settings:
+            search_criteria = settings['searchCriteria']
+        else:
+            search_criteria = []
+            search_criteria.append(ArticleSearchCriteria())
+            search_criteria.append(ArticleSearchCriteria())
+            search_criteria.append(ArticleSearchCriteria())
+        return search_criteria
+
+    @staticmethod
     def get_settings(request):
         userName = request.user.username
         if userName in userSettings:
@@ -93,6 +105,11 @@ class UserSettings:
         settings['searchArticles'] = articles
         for article in articles:
             article.checked = False
+
+    @staticmethod
+    def update_search_criteria(request, search_criteria):
+        settings = UserSettings.get_settings(request)
+        settings['searchCriteria'] = search_criteria
 
 @login_required
 def artikel(request, id):
@@ -179,6 +196,7 @@ def get_articles_by_search_criteria(request):
     search_criteria.search_string = search_string
     search_criteria.search_type = search_type
     search_criteria_list.append(search_criteria)
+    UserSettings.update_search_criteria(request, search_criteria_list)
     articles = ArticleManager.get_articles_by_search_criteria(search_criteria_list)
     UserSettings.update_search_articles(request, articles)
 
@@ -376,6 +394,7 @@ def redigera(request, id = None):
         articles.append(artikel)
         UserSettings.update_articles_html(request, articles)
 
+    search_criteria =  UserSettings.get_search_criteria(request)
     if (artikel is None):
         context = {
             'articles': UserSettings.get_articles_html(request),
@@ -385,8 +404,11 @@ def redigera(request, id = None):
             'has_articles_html': UserSettings.has_articles_html(request),
             'pagetitle': pageTitle,
             'clipboard': None,
-            'create_article' : True,
-            'search_articles' : UserSettings.get_search_articles(request)
+            'create_article': True,
+            'search_articles': UserSettings.get_search_articles(request),
+            'search_criteria_one': search_criteria[0],
+            'search_criteria_two': search_criteria[1],
+            'search_criteria_three': search_criteria[2]
         }
     else:
         context = {
@@ -398,7 +420,10 @@ def redigera(request, id = None):
             'pagetitle': pageTitle,
             'clipboard': None,
             'edit_article' : True,
-            'search_articles': UserSettings.get_search_articles(request)
+            'search_articles': UserSettings.get_search_articles(request),
+            'search_criteria_one': search_criteria[0],
+            'search_criteria_two': search_criteria[1],
+            'search_criteria_three': search_criteria[2]
         }
 
     return HttpResponse(template.render(context, request))

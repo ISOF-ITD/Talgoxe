@@ -350,14 +350,48 @@ class ArticleSearchCriteria:
 class ArticleManager:
 
     @staticmethod
+    def get_article_item_types(search_criteria_list):
+        articleItemTypeIds = []
+        has_article_item_search_criteria = False
+        has_article_item_type_search_criteria = False
+        for search_criteria in search_criteria_list:
+            if ((search_criteria.search_type == 'ArticleItemType') and
+                (not (is_empty_string(search_criteria.search_string)))):
+                has_article_item_type_search_criteria = True
+            if (search_criteria.search_type == 'ArticleItem'):
+                has_article_item_search_criteria = True
+
+        if (has_article_item_search_criteria and
+            has_article_item_type_search_criteria):
+            for search_criteria in search_criteria_list:
+                if ((search_criteria.search_type == 'ArticleItemType') and
+                    (not (is_empty_string(search_criteria.search_string)))):
+                    if (search_criteria.compare_type == 'Contains'):
+                        articleItemTypes = Typ.objects.filter(kod__icontains=search_criteria.search_string)
+                    elif (search_criteria.compare_type == 'EndWith'):
+                        articleItemTypes = Typ.objects.filter(kod__iendswith=search_criteria.search_string)
+                    elif (search_criteria.compare_type == 'EqualTo'):
+                        articleItemTypes = Typ.objects.filter(kod__iexact=search_criteria.search_string)
+                    elif (search_criteria.compare_type == 'StartsWith'):
+                        articleItemTypes = Typ.objects.filter(kod__istartswith=search_criteria.search_string)
+                    for articleItemType in articleItemTypes:
+                        articleItemTypeIds.append(articleItemType.id)
+        else:
+            articleItemTypeIds = None
+        return articleItemTypeIds
+
+    @staticmethod
     def get_articles_by_search_criteria(search_criteria_list):
         if (ArticleManager.is_empty_search_criteria(search_criteria_list)):
             return []
 
         article_search_result = None
+        article_item_types = ArticleManager.get_article_item_types(search_criteria_list)
         for search_criteria in search_criteria_list:
-            if (not (is_empty_string(search_criteria.search_string))):
-                articles = ArticleManager.get_articles_by_search_criteria2(search_criteria)
+            if ((not (is_empty_string(search_criteria.search_string))) and
+                (not ((search_criteria.search_type == 'ArticleItemType') and
+                      (not (article_item_types is None))))):
+                articles = ArticleManager.get_articles_by_one_search_criteria(search_criteria, article_item_types)
                 if (article_search_result is None):
                     article_search_result = articles
                 else:
@@ -367,7 +401,8 @@ class ArticleManager:
             article_search_result = []
         return article_search_result
 
-    def get_articles_by_search_criteria2(search_criteria):
+    @staticmethod
+    def get_articles_by_one_search_criteria(search_criteria, article_item_types):
         articles = []
         search_articles = None
         if (not (is_empty_string(search_criteria.search_string))):
@@ -386,18 +421,32 @@ class ArticleManager:
             if ((search_criteria.search_type == 'ArticleItem') or
                 (search_criteria.search_type == 'All')):
                 if (search_criteria.compare_type == 'Contains'):
-                    articleItems = Spole.objects.filter(text__icontains=search_criteria.search_string).select_related('artikel')
+                    if (article_item_types is None):
+                        articleItems = Spole.objects.filter(text__icontains=search_criteria.search_string).select_related('artikel')
+                    else:
+                        articleItems = Spole.objects.filter(text__icontains=search_criteria.search_string, typ_id__in=article_item_types).select_related('artikel')
                 elif (search_criteria.compare_type == 'EndWith'):
-                    articleItems = Spole.objects.filter(text__iendswith=search_criteria.search_string).select_related('artikel')
+                    if (article_item_types is None):
+                        articleItems = Spole.objects.filter(text__iendswith=search_criteria.search_string).select_related('artikel')
+                    else:
+                        articleItems = Spole.objects.filter(text__iendswith=search_criteria.search_string, typ_id__in=article_item_types).select_related('artikel')
                 elif (search_criteria.compare_type == 'EqualTo'):
-                    articleItems = Spole.objects.filter(text__iexact=search_criteria.search_string).select_related('artikel')
+                    if (article_item_types is None):
+                        articleItems = Spole.objects.filter(text__iexact=search_criteria.search_string).select_related('artikel')
+                    else:
+                        articleItems = Spole.objects.filter(text__iexact=search_criteria.search_string, typ_id__in=article_item_types).select_related('artikel')
                 elif (search_criteria.compare_type == 'StartsWith'):
-                    articleItems = Spole.objects.filter(text__istartswith=search_criteria.search_string).select_related('artikel')
+                    if (article_item_types is None):
+                        articleItems = Spole.objects.filter(text__istartswith=search_criteria.search_string).select_related('artikel')
+                    else:
+                        articleItems = Spole.objects.filter(text__istartswith=search_criteria.search_string, typ_id__in=article_item_types).select_related('artikel')
+
                 search_articles = [articleItem.artikel for articleItem in articleItems]
                 articles += search_articles
 
-            if ((search_criteria.search_type == 'ArticleItemType') or
-                (search_criteria.search_type == 'All')):
+            if (((search_criteria.search_type == 'ArticleItemType') or
+                 (search_criteria.search_type == 'All')) and
+                (article_item_types is None)):
                 if (search_criteria.compare_type == 'Contains'):
                     articleItemTypes = Typ.objects.filter(kod__icontains=search_criteria.search_string)
                 elif (search_criteria.compare_type == 'EndWith'):
