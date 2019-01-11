@@ -3,23 +3,23 @@
         <li><p>Användare: {{ request.user }}</p></li>
         <li>
             {% if create_article %}
-                <a class="active" href="{% url 'redigera' %}">Skapa artikel</a>
+                <a class="active" href="{% url 'edit' %}">Skapa artikel</a>
             {% else %}
-                <a href="{% url 'redigera' %}">Skapa artikel</a>
+                <a href="{% url 'edit' %}">Skapa artikel</a>
             {% endif %}
         </li>
         <li>
             {% if current_article %}
                 {% if edit_article %}
-                    <a class="active" href="{% url 'redigera' current_article.id %}">Redigera artikel</a>
+                    <a class="active" href="{% url 'edit' current_article.id %}">Redigera artikel</a>
                 {% else %}
-                    <a href="{% url 'redigera' current_article.id %}">Redigera artikel</a>
+                    <a href="{% url 'edit' current_article.id %}">Redigera artikel</a>
                 {% endif %}
             {% else %}
                 {% if edit_article %}
-                    <a class="active" href="{% url 'redigera' %}">Redigera artikel</a>
+                    <a class="active" href="{% url 'edit' %}">Redigera artikel</a>
                 {% else %}
-                    <a href="{% url 'redigera' %}">Redigera artikel</a>
+                    <a href="{% url 'edit' %}">Redigera artikel</a>
                 {% endif %}
             {% endif %}
         </li>
@@ -42,6 +42,6 @@
                 <a href="{% url 'print_on_demand' %}">Anpassat urval</a>
             {% endif %}
         </li>
-        <li style="float:right"><a href="{% url 'easylogout' %}">Logga ut</a></li>
+        <li style="float:right"><a href="{% url 'talgoxe_logout' %}">Logga ut</a></li>
     </ul>
 </nav>

@@ -27,7 +27,7 @@ function showArticle(articleId) {
 
     // Get articles as html.
     webAddress = $('.edit-article').attr('action');
-    webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
     webAddress = webAddress + "get_articles_html";
     $.post(
         webAddress,
@@ -65,7 +65,7 @@ function showAllArticles(event) {
 
         // Get articles as html.
         webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
         webAddress = webAddress + "get_articles_html";
         $.post(
             webAddress,
@@ -104,7 +104,7 @@ function showSelectedArticles(event) {
 
         // Get articles as html.
         webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
         webAddress = webAddress + "get_articles_html";
         $.post(
             webAddress,
@@ -138,7 +138,7 @@ function showArticleCheckedChange(articleId) {
     });
 
     var webAddress = $('.edit-article').attr('action');
-    webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
     webAddress = webAddress + "update_checked_articles";
     $.post(
         webAddress,
@@ -184,7 +184,7 @@ $(document).ready(function() {
         articleName = $('.article-name').attr('value')
         action = $('.edit-article').attr('action')
         articleId = action.substring(action.lastIndexOf("/") + 1, 100)
-        action = action.replace("redigera", "delete")
+        action = action.replace("edit", "delete")
         if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
             $('.edit-article').attr('action', action);
         }
@@ -273,7 +273,7 @@ $(document).ready(function() {
 
             // Send clipboard to server.
             webAddress = $('.edit-article').attr('action');
-            webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+            webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
             webAddress = webAddress + "update_clipboard";
             $.post(
                 webAddress,
@@ -315,7 +315,7 @@ $(document).ready(function() {
             // Get clipboard from server.
             rowItems = '';
             webAddress = $('.edit-article').attr('action');
-            webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+            webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
             webAddress = webAddress + "get_clipboard";
             $.post(
                 webAddress,
@@ -406,7 +406,7 @@ $(document).ready(function() {
             }
         });
         webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
         webAddress = webAddress + "get_articles_by_search_criteria";
         // alert(webAddress);
         // alert(JSON.stringify(searchCriteria));
@@ -417,7 +417,7 @@ $(document).ready(function() {
                 var appendTo = $('.search-article-result');
                 var articleCount = $('#number-of-found-articles');
                 webAddress = $('.edit-article').attr('action');
-                webAddress = webAddress.substring(0, webAddress.indexOf("redigera"));
+                webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
                 appendTo.empty();
                 articleCount.empty();
                 if (isNotEmpty(result) && isNotEmpty(result.articles)) {
@@ -438,7 +438,7 @@ $(document).ready(function() {
                         appendTo.append('<li class="nobullet search-article-result-row">' +
                                        '<a href="'+
                                        webAddress +
-                                       'redigera/' +
+                                       'edit/' +
                                        result.articles[articleIndex].id +
                                        '" value="' +
                                        result.articles[articleIndex].id +

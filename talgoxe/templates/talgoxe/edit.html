@@ -7,7 +7,7 @@
     <td id="inmatning">
         <h2>Inmatning</h2>
         {% if edit_artikel %}
-            <form class="edit-article" action="{% url 'redigera' edit_artikel.id %}" method="POST">
+            <form class="edit-article" action="{% url 'edit' edit_artikel.id %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="clipboard" class="clipboard" value="{{ clipboard }}">
                 <ul id="input-control">
@@ -43,7 +43,7 @@
                 </ul>
             </form>
         {% else %}
-            <form class="edit-article" action="{% url 'redigera' %}" method="POST">
+            <form class="edit-article" action="{% url 'edit' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="clipboard" class="clipboard" value="{{ clipboard }}">
                 <ul id="input-control">
@@ -82,7 +82,7 @@
     </td>
     <td id="new_search">
         <h2>S&ouml;k</h2>
-        <form class="search-article" action="{% url 'redigera' %}" method="POST">
+        <form class="search-article" action="{% url 'edit' %}" method="POST">
             <div class="search-article-criteria">
                 <select id="search-type1" class="search-select">
                   <option value="Lemma" {% if search_criteria_one.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
@@ -141,7 +141,7 @@
             <ul class="search-article-result">
                 {% for search_article in search_articles %}
                     <li class="nobullet search-article-result-row">
-                        <a href="{% url 'redigera' search_article.id %}" value="{{search_article.id}}" onClick="showArticle({{search_article.id}})" />
+                        <a href="{% url 'edit' search_article.id %}" value="{{search_article.id}}" onClick="showArticle({{search_article.id}})" />
                             {% if search_article.rank %}
                                 <sup>search_article.rank</sup>
                             {% endif %}

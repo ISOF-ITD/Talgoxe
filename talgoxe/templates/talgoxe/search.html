@@ -34,7 +34,7 @@
             <span class="träffelement">▸</span>
             <span class="träffelement">{% include "talgoxe/lemma.html" %}</span>
             <span class="träffelement hidden" id="artikel-{{ artikel.id }}"></span>
-            <a href="{% url 'redigera' artikel.id %}">Redigera</a>
+            <a href="{% url 'edit' artikel.id %}">Redigera</a>
             <input type="hidden" name="artikel-{{ artikel.id }}" />
             <p class="hidden" />
           </li>

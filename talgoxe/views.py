@@ -126,7 +126,7 @@ def artikel_efter_stickord(request, stickord):
     artiklar = Artikel.objects.filter(lemma = stickord)
     # TODO: 0!
     if len(artiklar) == 1:
-        return HttpResponseRedirect(reverse('redigera', args = (artiklar.first().id,)))
+        return HttpResponseRedirect(reverse('edit', args = (artiklar.first().id,)))
     else:
         template = loader.get_template('talgoxe/stickord.html')
         context = {
@@ -137,24 +137,6 @@ def artikel_efter_stickord(request, stickord):
         }
         return HttpResponse(template.render(context, request))
 
-@login_required # FIXME Något om användaren faktiskt är utloggad?
-def create(request):
-    AccessManager.check_edit_permission(request.user)
-    nylemma = request.POST['nylemma'].strip()
-    företrädare = Artikel.objects.filter(lemma = nylemma)
-    maxrang = företrädare.aggregate(Max('rang'))['rang__max']
-    if maxrang == None:
-        rang = 0
-    elif maxrang == 0:
-        artikel0 = företrädare.first()
-        artikel0.rang = 1
-        artikel0.save()
-        rang = 2
-    elif maxrang > 0:
-        rang = maxrang + 1
-    artikel = Artikel.objects.create(lemma = nylemma, lemma_sortable = Artikel.get_lemma_sortable(nylemma), rang = rang)
-    return HttpResponseRedirect(reverse('redigera', args = (artikel.id,)))
-
 @login_required
 def delete(request, id):
     AccessManager.check_edit_permission(request.user)
@@ -162,12 +144,68 @@ def delete(request, id):
     Artikel.objects.get(id = id).delete()
     UserSettings.update_edit_article(request, None)
 
-    return HttpResponseRedirect(reverse('redigera'))
+    return HttpResponseRedirect(reverse('edit'))
 
-def easylogout(request):
-    logout(request)
-    template = loader.get_template("talgoxe/logout.html")
-    return HttpResponse(template.render({ }, request))
+@login_required
+def edit(request, id = None):
+    artikel = None
+    method = request.META['REQUEST_METHOD']
+    if method == 'POST':
+        AccessManager.check_edit_permission(request.user)
+        if (id is None):
+            artikel = Artikel.create(request.POST)
+            return HttpResponseRedirect(reverse('edit', args=(artikel.id,)))
+        else:
+            artikel = Artikel.objects.get(id=id)
+            artikel.update(request.POST)
+
+    template = loader.get_template('talgoxe/edit.html')
+    pageTitle = 'Svenskt dialektlexikon'
+    if ((artikel is None) and (not (id is None))):
+        # Get article information.
+        artikel = Artikel.objects.get(id=id)
+        artikel.collect()
+        pageTitle = artikel.lemma + "- " + pageTitle
+        UserSettings.update_edit_article(request, artikel)
+
+    if (len(UserSettings.get_articles_html(request)) < 1):
+        articles = []
+        articles.append(artikel)
+        UserSettings.update_articles_html(request, articles)
+
+    search_criteria =  UserSettings.get_search_criteria(request)
+    if (artikel is None):
+        context = {
+            'articles': UserSettings.get_articles_html(request),
+            'current_article' : UserSettings.get_edit_article(request),
+            'current_page': 'edit',
+            'edit_artikel': artikel,
+            'has_articles_html': UserSettings.has_articles_html(request),
+            'pagetitle': pageTitle,
+            'clipboard': None,
+            'create_article': True,
+            'search_articles': UserSettings.get_search_articles(request),
+            'search_criteria_one': search_criteria[0],
+            'search_criteria_two': search_criteria[1],
+            'search_criteria_three': search_criteria[2]
+        }
+    else:
+        context = {
+            'articles': UserSettings.get_articles_html(request),
+            'current_article' : UserSettings.get_edit_article(request),
+            'current_page': 'edit',
+            'edit_artikel': artikel,
+            'has_articles_html': UserSettings.has_articles_html(request),
+            'pagetitle': pageTitle,
+            'clipboard': None,
+            'edit_article' : True,
+            'search_articles': UserSettings.get_search_articles(request),
+            'search_criteria_one': search_criteria[0],
+            'search_criteria_two': search_criteria[1],
+            'search_criteria_three': search_criteria[2]
+        }
+
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def get_articles_by_search_criteria(request):
@@ -313,9 +351,9 @@ def get_word_file(request):
 def index(request):
     article = UserSettings.get_edit_article(request)
     if (article is None):
-        return HttpResponseRedirect(reverse('redigera'))
+        return HttpResponseRedirect(reverse('edit'))
     else:
-        return HttpResponseRedirect(reverse('redigera', args=(article.id,)))
+        return HttpResponseRedirect(reverse('edit', args=(article.id,)))
 
 @login_required
 def print(request, format):
@@ -364,67 +402,6 @@ def print_on_demand(request):
                     'bokstäver' : bokstäver,
                     'pagetitle' : '%d artiklar' % artiklar.count(),
                     'print_on_demand': True }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def redigera(request, id = None):
-    artikel = None
-    method = request.META['REQUEST_METHOD']
-    if method == 'POST':
-        AccessManager.check_edit_permission(request.user)
-        if (id is None):
-            artikel = Artikel.create(request.POST)
-            return HttpResponseRedirect(reverse('redigera', args=(artikel.id)))
-        else:
-            artikel = Artikel.objects.get(id=id)
-            artikel.update(request.POST)
-
-    template = loader.get_template('talgoxe/redigera.html')
-    pageTitle = 'Svenskt dialektlexikon'
-    if ((artikel is None) and (not (id is None))):
-        # Get article information.
-        artikel = Artikel.objects.get(id=id)
-        artikel.collect()
-        pageTitle = artikel.lemma + "- " + pageTitle
-        UserSettings.update_edit_article(request, artikel)
-
-    if (len(UserSettings.get_articles_html(request)) < 1):
-        articles = []
-        articles.append(artikel)
-        UserSettings.update_articles_html(request, articles)
-
-    search_criteria =  UserSettings.get_search_criteria(request)
-    if (artikel is None):
-        context = {
-            'articles': UserSettings.get_articles_html(request),
-            'current_article' : UserSettings.get_edit_article(request),
-            'current_page': 'redigera',
-            'edit_artikel': artikel,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle': pageTitle,
-            'clipboard': None,
-            'create_article': True,
-            'search_articles': UserSettings.get_search_articles(request),
-            'search_criteria_one': search_criteria[0],
-            'search_criteria_two': search_criteria[1],
-            'search_criteria_three': search_criteria[2]
-        }
-    else:
-        context = {
-            'articles': UserSettings.get_articles_html(request),
-            'current_article' : UserSettings.get_edit_article(request),
-            'current_page': 'redigera',
-            'edit_artikel': artikel,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle': pageTitle,
-            'clipboard': None,
-            'edit_article' : True,
-            'search_articles': UserSettings.get_search_articles(request),
-            'search_criteria_one': search_criteria[0],
-            'search_criteria_two': search_criteria[1],
-            'search_criteria_three': search_criteria[2]
-        }
 
     return HttpResponse(template.render(context, request))
 
@@ -489,6 +466,11 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
         }
 
     return HttpResponse(template.render(context, request))
+
+def talgoxe_logout(request):
+    logout(request)
+    template = loader.get_template("talgoxe/logout.html")
+    return HttpResponse(template.render({ }, request))
 
 @login_required
 def update_checked_articles(request):
