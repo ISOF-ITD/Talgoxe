@@ -20,12 +20,12 @@ urlpatterns = [
 
     # HTML responses.
     url(r'^delete/(?P<id>\d+)$', views.delete, name = 'delete'),
+    url(r'^edit_select/(?P<lemma>.+)$', views.edit_select, name = 'edit_select'),
     url(r'^edit/(?P<id>\d+)$', views.edit, name = 'edit'),
     url(r'^edit', views.edit, name = 'edit'),
+    url(r'^get_article_html/(?P<id>\d+)?$', views.get_article_html, name = 'get_article_html'),
+    url(r'^get_file/(?P<format>.*)', views.get_file, name = 'get_file'),
     url(r'^logout', views.talgoxe_logout, name = 'talgoxe_logout'),
-    url(r'^stickord/(?P<stickord>.+)$', views.artikel_efter_stickord, name = 'stickord'),
-    url(r'^search$', views.search, name = 'search'),
-    url(r'^artikel/(?P<id>\d+)?$', views.artikel, name = 'artikel'),
-    url(r'^print-on-demand$', views.print_on_demand, name = 'print_on_demand'),
-    url(r'^print-on-demand/(?P<format>.*)', views.print, name = 'print')
+    url(r'^reordering', views.reordering, name = 'reordering'),
+    url(r'^select_articles', views.select_articles, name = 'select_articles')
 ]

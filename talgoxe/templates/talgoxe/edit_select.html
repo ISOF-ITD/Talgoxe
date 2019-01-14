@@ -2,9 +2,10 @@
 
 {% include "talgoxe/navigation.html" %}
 
+<h2>Välj artikel att redigera</h2>
 <ul>
 {% for artikel in artiklar %}
-  <li class="nobullet"><a href="{% url 'redigera' artikel.id %}">{% include "talgoxe/lemma.html" %}</a></li>
+  <li class="nobullet"><a href="{% url 'edit' artikel.id %}">{% include "talgoxe/lemma.html" %}</a></li>
 {% endfor %}
 </ul>
 

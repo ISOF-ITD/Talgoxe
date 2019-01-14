@@ -37,9 +37,9 @@
         </li>
         <li>
             {% if print_on_demand %}
-                <a class="active" href="{% url 'print_on_demand' %}">Anpassat urval</a>
+                <a class="active" href="{% url 'select_articles' %}">Anpassat urval</a>
             {% else %}
-                <a href="{% url 'print_on_demand' %}">Anpassat urval</a>
+                <a href="{% url 'select_articles' %}">Anpassat urval</a>
             {% endif %}
         </li>
         <li style="float:right"><a href="{% url 'talgoxe_logout' %}">Logga ut</a></li>

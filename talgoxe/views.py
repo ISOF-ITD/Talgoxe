@@ -112,32 +112,6 @@ class UserSettings:
         settings['searchCriteria'] = search_criteria
 
 @login_required
-def artikel(request, id):
-    # This method is used in AJAX-requests and the returned HTML is used as data.
-    artikel = Artikel.objects.get(id = id)
-    template = loader.get_template('talgoxe/artikel.html')
-    artikel.collect()
-    context = { 'artikel' : artikel, 'format' : format }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def artikel_efter_stickord(request, stickord):
-    artiklar = Artikel.objects.filter(lemma = stickord)
-    # TODO: 0!
-    if len(artiklar) == 1:
-        return HttpResponseRedirect(reverse('edit', args = (artiklar.first().id,)))
-    else:
-        template = loader.get_template('talgoxe/stickord.html')
-        context = {
-            'artiklar' : artiklar,
-            'current_article': artikel,
-            'current_page': 'stickord',
-            'has_articles_html': UserSettings.has_articles_html(request),
-        }
-        return HttpResponse(template.render(context, request))
-
-@login_required
 def delete(request, id):
     AccessManager.check_edit_permission(request.user)
     Spole.objects.filter(artikel_id = id).delete()
@@ -165,7 +139,7 @@ def edit(request, id = None):
         # Get article information.
         artikel = Artikel.objects.get(id=id)
         artikel.collect()
-        pageTitle = artikel.lemma + "- " + pageTitle
+        pageTitle = artikel.lemma + " - " + pageTitle
         UserSettings.update_edit_article(request, artikel)
 
     if (len(UserSettings.get_articles_html(request)) < 1):
@@ -206,6 +180,46 @@ def edit(request, id = None):
         }
 
     return HttpResponse(template.render(context, request))
+
+@login_required
+def edit_select(request, lemma):
+    artiklar = Artikel.objects.filter(lemma = lemma)
+    if len(artiklar) == 0:
+        return HttpResponseRedirect(reverse('edit'))
+    if len(artiklar) == 1:
+        return HttpResponseRedirect(reverse('edit', args = (artiklar.first().id,)))
+    else:
+        # Lemma 'drönta' can be used to trigger this section of the code.
+        template = loader.get_template('talgoxe/edit_select.html')
+        page_title = lemma + ' - Svenskt dialektlexikon'
+        context = {
+            'artiklar' : artiklar,
+            'edit_article': artiklar,
+            'has_articles_html': UserSettings.has_articles_html(request),
+            'pagetitle': page_title
+        }
+        return HttpResponse(template.render(context, request))
+
+@login_required
+def get_article_html(request, id):
+    # This method is used in AJAX-requests and the returned HTML is used as data.
+    artikel = Artikel.objects.get(id = id)
+    template = loader.get_template('talgoxe/artikel.html')
+    artikel.collect()
+    context = { 'artikel' : artikel, 'format' : format }
+
+    return HttpResponse(template.render(context, request))
+
+def get_article_html_by_article(request, article):
+    string_builder = []
+    string_builder.append("<p>")
+    template = loader.get_template('talgoxe/artikel.html')
+    context = {
+        'artikel': article,
+    }
+    string_builder.append(template.render(context, request))
+    string_builder.append("</p>")
+    return ''.join(string_builder)
 
 @login_required
 def get_articles_by_search_criteria(request):
@@ -252,17 +266,6 @@ def get_articles_by_search_criteria(request):
     articles_dictionary["articles"] = articles_array
     return JsonResponse(articles_dictionary, safe=False)
 
-def get_article_html(request, article):
-    string_builder = []
-    string_builder.append("<p>")
-    template = loader.get_template('talgoxe/artikel.html')
-    context = {
-        'artikel': article,
-    }
-    string_builder.append(template.render(context, request))
-    string_builder.append("</p>")
-    return ''.join(string_builder)
-
 @login_required
 def get_articles_html(request):
     # Get articles.
@@ -281,7 +284,7 @@ def get_articles_html(request):
     string_builder.append('<div class="show-articles-column">')
     for article in articles:
         article.collect()
-        string_builder.append(get_article_html(request, article))
+        string_builder.append(get_article_html_by_article(request, article))
     string_builder.append("</div>")
 
     data = {
@@ -295,6 +298,20 @@ def get_clipboard(request):
         'clipboard': UserSettings.get_clipboard(request)
     }
     return JsonResponse(data)
+
+@login_required
+def get_file(request, format):
+    if format not in ['pdf', 'odt', 'docx']:
+        raise UnsupportedFormat(format)
+    template = loader.get_template('talgoxe/get_file.html')
+    exporter = Exporter(format)
+    # exporter.export_letters()
+    filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
+    context = {'current_article' : UserSettings.get_edit_article(request),
+               'print_on_demand': True,
+               'filepath' : filepath }
+
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def get_odf_file(request):
@@ -356,57 +373,7 @@ def index(request):
         return HttpResponseRedirect(reverse('edit', args=(article.id,)))
 
 @login_required
-def print(request, format):
-    if format not in ['pdf', 'odt', 'docx']:
-        raise UnsupportedFormat(format)
-    template = loader.get_template('talgoxe/download_document.html')
-    exporter = Exporter(format)
-    # exporter.export_letters()
-    filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
-    context = {'current_article' : UserSettings.get_edit_article(request),
-               'print_on_demand': True,
-               'filepath' : filepath }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def print_on_demand(request):
-    # Artikel.update_lemma_sortable()
-    method = request.META['REQUEST_METHOD']
-    template = loader.get_template('talgoxe/print_on_demand.html')
-    if method == 'POST':
-        artiklar = []
-        for key in request.POST:
-            mdata = match('selected-(\d+)', key)
-            bdata = match('bokstav-(.)', key)
-            if mdata:
-                artiklar.append(Artikel.objects.get(id = int(mdata.group(1))))
-            elif bdata:
-                hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
-                artiklar += hel_bokstav
-        context = { 'current_article' : UserSettings.get_edit_article(request),
-                    'artiklar' : artiklar,
-                    'has_articles_html': UserSettings.has_articles_html(request),
-                    'redo' : True,
-                    'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
-                    'pagetitle' : '%d artiklar' % len(artiklar),
-                    'print_on_demand': True }
-        template = loader.get_template('talgoxe/search.html')
-    elif method == 'GET':
-        artiklar = Artikel.objects.order_by('lemma', 'rang')
-        bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
-        context = { 'current_article' : UserSettings.get_edit_article(request),
-                    'artiklar' : artiklar,
-                    'has_articles_html': UserSettings.has_articles_html(request),
-                    'checkboxes' : True,
-                    'bokstäver' : bokstäver,
-                    'pagetitle' : '%d artiklar' % artiklar.count(),
-                    'print_on_demand': True }
-
-    return HttpResponse(template.render(context, request))
-
-@login_required
-def search(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
+def reordering(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
     method = request.META['REQUEST_METHOD']
     if method == 'POST':
         AccessManager.check_edit_permission(request.user)
@@ -464,6 +431,42 @@ def search(request): # TODO Fixa lista över artiklar när man POSTar efter omor
             'uri' : uri,
             'sök_överallt' : sök_överallt,
         }
+
+    return HttpResponse(template.render(context, request))
+
+@login_required
+def select_articles(request):
+    # Artikel.update_lemma_sortable()
+    method = request.META['REQUEST_METHOD']
+    template = loader.get_template('talgoxe/select_articles.html')
+    if method == 'POST':
+        artiklar = []
+        for key in request.POST:
+            mdata = match('selected-(\d+)', key)
+            bdata = match('bokstav-(.)', key)
+            if mdata:
+                artiklar.append(Artikel.objects.get(id = int(mdata.group(1))))
+            elif bdata:
+                hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
+                artiklar += hel_bokstav
+        context = { 'current_article' : UserSettings.get_edit_article(request),
+                    'artiklar' : artiklar,
+                    'has_articles_html': UserSettings.has_articles_html(request),
+                    'redo' : True,
+                    'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
+                    'pagetitle' : '%d artiklar' % len(artiklar),
+                    'print_on_demand': True }
+        template = loader.get_template('talgoxe/reordering.html')
+    elif method == 'GET':
+        artiklar = Artikel.objects.order_by('lemma', 'rang')
+        bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
+        context = { 'current_article' : UserSettings.get_edit_article(request),
+                    'artiklar' : artiklar,
+                    'has_articles_html': UserSettings.has_articles_html(request),
+                    'checkboxes' : True,
+                    'bokstäver' : bokstäver,
+                    'pagetitle' : '%d artiklar' % artiklar.count(),
+                    'print_on_demand': True }
 
     return HttpResponse(template.render(context, request))
 

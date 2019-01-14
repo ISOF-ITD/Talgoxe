@@ -714,7 +714,7 @@ $(document).ready(function() {
 
     function fetchArticle(element) {
         var artId = element.id.replace(/^lemma-/, '');
-        var artUrl = window.location.href.replace(/\/talgoxe.*$/, '/talgoxe/artikel/');
+        var artUrl = window.location.href.replace(/\/talgoxe.*$/, '/talgoxe/get_article_html/');
         $.get(artUrl + artId).done(function(data) {
             $('#artikel-' + artId).html(data);
             $(element).off("click");
@@ -754,7 +754,7 @@ $(document).ready(function() {
         //console.log("Article IDs:");
         //console.log(articles);
         url = printableEndpoint('pdf', articles);
-        alert(JSON.stringify(url));
+        //alert(JSON.stringify(url));
         //console.log("Getting " + url);
         $.get(url).done(function(data) {
             //console.log("GET completed!  Data:");
@@ -777,7 +777,7 @@ $(document).ready(function() {
     }
 
     function printableEndpoint(format, articles) {
-        return window.location.href.replace(/\/talgoxe.*/, '/talgoxe/print-on-demand') + '/' + format + '?ids=' + new String(articles);
+        return window.location.href.replace(/\/talgoxe.*/, '/talgoxe/get_file') + '/' + format + '?ids=' + new String(articles);
     }
 
     $('#skapa-odf').click(function(event) { createODF(event.currentTarget); });
