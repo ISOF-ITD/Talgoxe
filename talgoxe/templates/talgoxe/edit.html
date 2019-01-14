@@ -18,6 +18,7 @@
                     <input type="submit" value="Kopiera" class="copy-rows" tabindex="-1">
                     <input type="submit" value="Klipp ut" class="cut-rows" tabindex="-1">
                     <input type="submit" value="Klistra in" class="paste-rows" tabindex="-1">
+                    <div class="special-characters">~</div><div class="special-characters">¶</div>
                     <button type="button" class="show-current-article" onclick="showArticle({{edit_artikel.id}})">Visa</button>
                 </li>
                 </ul>
@@ -47,12 +48,15 @@
                 {% csrf_token %}
                 <input type="hidden" name="clipboard" class="clipboard" value="{{ clipboard }}">
                 <ul id="input-control">
-                <li>SO&nbsp;&nbsp;: <input type="text" class='article-name' name="stickord" value="" size="16">
-                            <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
-                            <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"><br/>
-                            <input type="submit" value="Kopiera" class="copy-rows" tabindex="-1">
-                            <input type="submit" value="Klipp ut" class="cut-rows" tabindex="-1">
-                            <input type="submit" value="Klistra in" class="paste-rows" tabindex="-1"></li>
+                <li>SO&nbsp;&nbsp;:
+                    <input type="text" class='article-name' name="stickord" value="" size="16">
+                    <input type="submit" value="Spara och ladda om 💾" class="spara-och-ladda-om" tabindex="-1">
+                    <input type="submit" value="Ta bort 💾" class="remove-article" tabindex="-1"><br/>
+                    <input type="submit" value="Kopiera" class="copy-rows" tabindex="-1">
+                    <input type="submit" value="Klipp ut" class="cut-rows" tabindex="-1">
+                    <input type="submit" value="Klistra in" class="paste-rows" tabindex="-1">
+                    <div class="special-characters">~</div><div class="special-characters">¶</div>
+                </li>
                 </ul>
                 <ul class="lemma-list">
                     <li id="data-1">
