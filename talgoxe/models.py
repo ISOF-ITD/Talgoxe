@@ -341,13 +341,33 @@ class Typ(models.Model):
         out += (4 - len(out)) * '\xa0'
         return out
 
+
 class ArticleSearchCriteria:
     def __init__(self):
         self.compare_type = "StartsWith"
         self.search_string = ""
         self.search_type = "Lemma"
 
+
 class ArticleManager:
+
+    @staticmethod
+    def create_article(article_information):
+        article = Artikel.create(article_information)
+        article.collect()
+        return article
+
+    @staticmethod
+    def delete_article(article_id):
+        Spole.objects.filter(artikel_id = article_id).delete()
+        Artikel.objects.get(id = article_id).delete()
+
+    @staticmethod
+    def get_article(article_id, load_article_items=True):
+        article = Artikel.objects.get(id = article_id)
+        if (load_article_items):
+            article.collect()
+        return article
 
     @staticmethod
     def get_article_item_types(search_criteria_list):
@@ -400,6 +420,13 @@ class ArticleManager:
         if (article_search_result is None):
             article_search_result = []
         return article_search_result
+
+    @staticmethod
+    def get_articles_by_lemma(lemma):
+        articles = []
+        search_articles = Artikel.objects.filter(lemma = lemma)
+        articles += search_articles
+        return articles
 
     @staticmethod
     def get_articles_by_one_search_criteria(search_criteria, article_item_types):
@@ -476,7 +503,6 @@ class ArticleManager:
 
         return articles
 
-
     @staticmethod
     def get_subset(articles1, articles2):
         if (len(articles1) < 1) or (articles1[0] is None):
@@ -507,6 +533,13 @@ class ArticleManager:
             if (is_not_empty_string(search_criteria.search_string)):
                 is_search_string_found = True
         return not is_search_string_found
+
+    @staticmethod
+    def update_article(article_id, article_information):
+        article = Artikel.objects.get(id = article_id)
+        article.update(article_information)
+        article.collect()
+        return article
 
 
 article_types_by_abbreviation = {}

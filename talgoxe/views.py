@@ -2,212 +2,98 @@
 from __future__ import unicode_literals
 import os
 
-from collections import OrderedDict
-from re import match
-
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
-from django.shortcuts import render, redirect
-from django.template import loader, Context, RequestContext
+from django.template import loader
 from django.urls import reverse
-from django.utils.datastructures import MultiValueDictKeyError
-from django.conf import settings
+from re import match
+from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel
+from talgoxe.models import Exporter, Spole, UnsupportedFormat
+from talgoxe.UserSettings import UserSettings
 
-from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel, Exporter, Spole, UnsupportedFormat
-
-userSettings = {}
-
-class UserSettings:
-
-    @staticmethod
-    def get_articles_html(request):
-        settings = UserSettings.get_settings(request)
-        if 'articlesHtml' in settings:
-            articles = settings['articlesHtml']
-        else:
-            articles = []
-        return articles
-
-    @staticmethod
-    def get_clipboard(request):
-        settings = UserSettings.get_settings(request)
-        if 'clipboard' in settings:
-            clipboard = settings['clipboard']
-        else:
-            clipboard = ''
-        return clipboard
-
-    @staticmethod
-    def get_edit_article(request):
-        settings = UserSettings.get_settings(request)
-        if 'editArticle' in settings:
-            editArticle = settings['editArticle']
-        else:
-            editArticle = None
-        return editArticle
-
-    @staticmethod
-    def get_search_articles(request):
-        settings = UserSettings.get_settings(request)
-        if 'searchArticles' in settings:
-            articles = settings['searchArticles']
-        else:
-            articles = []
-        return articles
-
-    @staticmethod
-    def get_search_criteria(request):
-        settings = UserSettings.get_settings(request)
-        if 'searchCriteria' in settings:
-            search_criteria = settings['searchCriteria']
-        else:
-            search_criteria = []
-            search_criteria.append(ArticleSearchCriteria())
-            search_criteria.append(ArticleSearchCriteria())
-            search_criteria.append(ArticleSearchCriteria())
-        return search_criteria
-
-    @staticmethod
-    def get_settings(request):
-        userName = request.user.username
-        if userName in userSettings:
-            settings = userSettings[userName]
-        else:
-            settings = {}
-            userSettings[userName] = settings
-        return settings
-
-    @staticmethod
-    def has_articles_html(request):
-        articles_html = UserSettings.get_articles_html(request)
-        return (len(articles_html) > 0) and not (articles_html[0] is None)
-
-    @staticmethod
-    def update_clipboard(request, clipboard):
-        settings = UserSettings.get_settings(request)
-        settings['clipboard'] = clipboard
-
-    @staticmethod
-    def update_articles_html(request, articles):
-        settings = UserSettings.get_settings(request)
-        settings['articlesHtml'] = articles
-
-    @staticmethod
-    def update_edit_article(request, article):
-        settings = UserSettings.get_settings(request)
-        settings['editArticle'] = article
-
-    @staticmethod
-    def update_search_articles(request, articles):
-        settings = UserSettings.get_settings(request)
-        settings['searchArticles'] = articles
-        for article in articles:
-            article.checked = False
-
-    @staticmethod
-    def update_search_criteria(request, search_criteria):
-        settings = UserSettings.get_settings(request)
-        settings['searchCriteria'] = search_criteria
 
 @login_required
 def delete(request, id):
     AccessManager.check_edit_permission(request.user)
-    Spole.objects.filter(artikel_id = id).delete()
-    Artikel.objects.get(id = id).delete()
+    ArticleManager.delete_article(id)
     UserSettings.update_edit_article(request, None)
-
     return HttpResponseRedirect(reverse('edit'))
 
 @login_required
 def edit(request, id = None):
-    artikel = None
-    method = request.META['REQUEST_METHOD']
-    if method == 'POST':
+    article = None
+    if (request.META['REQUEST_METHOD'] == 'POST'):
         AccessManager.check_edit_permission(request.user)
         if (id is None):
-            artikel = Artikel.create(request.POST)
-            return HttpResponseRedirect(reverse('edit', args=(artikel.id,)))
+            # Create new article.
+            article = ArticleManager.create_article(request.POST)
+            return HttpResponseRedirect(reverse('edit', args=(article.id,)))
         else:
-            artikel = Artikel.objects.get(id=id)
-            artikel.update(request.POST)
+            # Update existing article.
+            article = ArticleManager.update_article(id, request.POST)
 
     template = loader.get_template('talgoxe/edit.html')
-    pageTitle = 'Svenskt dialektlexikon'
-    if ((artikel is None) and (not (id is None))):
+    page_title = 'Svenskt dialektlexikon'
+    if ((article is None) and (not (id is None))):
         # Get article information.
-        artikel = Artikel.objects.get(id=id)
-        artikel.collect()
-        pageTitle = artikel.lemma + " - " + pageTitle
-        UserSettings.update_edit_article(request, artikel)
+        article = ArticleManager.get_article(id)
+        page_title = article.lemma + " - " + page_title
+        UserSettings.update_edit_article(request, article)
 
-    if (len(UserSettings.get_articles_html(request)) < 1):
-        articles = []
-        articles.append(artikel)
-        UserSettings.update_articles_html(request, articles)
+    if (not (UserSettings.has_articles_html(request))):
+        # Show edited article in article view area.
+        UserSettings.update_article_html(request, article)
 
-    search_criteria =  UserSettings.get_search_criteria(request)
-    if (artikel is None):
-        context = {
-            'articles': UserSettings.get_articles_html(request),
-            'current_article' : UserSettings.get_edit_article(request),
-            'current_page': 'edit',
-            'edit_artikel': artikel,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle': pageTitle,
-            'clipboard': None,
-            'create_article': True,
-            'search_articles': UserSettings.get_search_articles(request),
-            'search_criteria_one': search_criteria[0],
-            'search_criteria_two': search_criteria[1],
-            'search_criteria_three': search_criteria[2]
-        }
+    search_criteria = UserSettings.get_search_criteria(request)
+    context = {
+        'articles_html' : UserSettings.get_articles_html(request),
+        'current_article' : UserSettings.get_edit_article(request),
+        'has_articles_html' : UserSettings.has_articles_html(request),
+        'page_title' : page_title,
+        'search_articles' : UserSettings.get_search_articles(request),
+        'search_criteria_one' : search_criteria[0],
+        'search_criteria_two' : search_criteria[1],
+        'search_criteria_three' : search_criteria[2]
+    }
+    if (article is None):
+        context['is_create_article_page'] = True
     else:
-        context = {
-            'articles': UserSettings.get_articles_html(request),
-            'current_article' : UserSettings.get_edit_article(request),
-            'current_page': 'edit',
-            'edit_artikel': artikel,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle': pageTitle,
-            'clipboard': None,
-            'edit_article' : True,
-            'search_articles': UserSettings.get_search_articles(request),
-            'search_criteria_one': search_criteria[0],
-            'search_criteria_two': search_criteria[1],
-            'search_criteria_three': search_criteria[2]
-        }
+        context['is_edit_article_page'] = True
 
     return HttpResponse(template.render(context, request))
 
 @login_required
 def edit_select(request, lemma):
-    artiklar = Artikel.objects.filter(lemma = lemma)
-    if len(artiklar) == 0:
+    articles = ArticleManager.get_articles_by_lemma(lemma)
+
+    if (len(articles) == 0):
+        # No article matches lemma. Go to create article.
         return HttpResponseRedirect(reverse('edit'))
-    if len(artiklar) == 1:
-        return HttpResponseRedirect(reverse('edit', args = (artiklar.first().id,)))
-    else:
-        # Lemma 'drönta' can be used to trigger this section of the code.
-        template = loader.get_template('talgoxe/edit_select.html')
-        page_title = lemma + ' - Svenskt dialektlexikon'
-        context = {
-            'artiklar' : artiklar,
-            'edit_article': artiklar,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle': page_title
-        }
-        return HttpResponse(template.render(context, request))
+
+    if (len(articles) == 1):
+        # Edit found article.
+        return HttpResponseRedirect(reverse('edit', args = (articles[0].id,)))
+
+    # Let the user select among articles with the same lemma.
+    # Lemma 'drönta' can be used to trigger this section of the code.
+    template = loader.get_template('talgoxe/edit_select.html')
+    page_title = lemma + ' - Svenskt dialektlexikon'
+    context = {
+        'articles' : articles,
+        'current_article' : UserSettings.get_edit_article(request),
+        'has_articles_html': UserSettings.has_articles_html(request),
+        'is_edit_article_page': True,
+        'page_title': page_title
+    }
+    return HttpResponse(template.render(context, request))
 
 @login_required
 def get_article_html(request, id):
     # This method is used in AJAX-requests and the returned HTML is used as data.
-    artikel = Artikel.objects.get(id = id)
+    article = ArticleManager.get_article(id)
     template = loader.get_template('talgoxe/artikel.html')
-    artikel.collect()
-    context = { 'artikel' : artikel, 'format' : format }
-
+    context = { 'artikel' : article, 'format' : format }
     return HttpResponse(template.render(context, request))
 
 def get_article_html_by_article(request, article):
@@ -215,7 +101,7 @@ def get_article_html_by_article(request, article):
     string_builder.append("<p>")
     template = loader.get_template('talgoxe/artikel.html')
     context = {
-        'artikel': article,
+        'artikel' : article,
     }
     string_builder.append(template.render(context, request))
     string_builder.append("</p>")
@@ -254,7 +140,6 @@ def get_articles_by_search_criteria(request):
 
     articles_dictionary = {}
     articles_array = []
-
     for article in articles:
         data = {
             'lemma': article.lemma,
@@ -262,9 +147,8 @@ def get_articles_by_search_criteria(request):
             'rank' : article.rang
         }
         articles_array.append(data)
-
     articles_dictionary["articles"] = articles_array
-    return JsonResponse(articles_dictionary, safe=False)
+    return JsonResponse(articles_dictionary, safe = False)
 
 @login_required
 def get_articles_html(request):
@@ -423,11 +307,10 @@ def reordering(request): # TODO Fixa lista över artiklar när man POSTar efter 
         artiklar += search_article_field_content
     context = {
             'current_article' : UserSettings.get_edit_article(request),
-            'current_page': 'search',
             'q' : söksträng,
             'artiklar' : artiklar,
             'has_articles_html': UserSettings.has_articles_html(request),
-            'pagetitle' : '%d sökresultat för ”%s” (%s)' % (len(artiklar), söksträng, sök_överallt_eller_inte),
+            'page_title' : '%d sökresultat för ”%s” (%s)' % (len(artiklar), söksträng, sök_överallt_eller_inte),
             'uri' : uri,
             'sök_överallt' : sök_överallt,
         }
@@ -454,7 +337,7 @@ def select_articles(request):
                     'has_articles_html': UserSettings.has_articles_html(request),
                     'redo' : True,
                     'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
-                    'pagetitle' : '%d artiklar' % len(artiklar),
+                    'page_title' : '%d artiklar' % len(artiklar),
                     'print_on_demand': True }
         template = loader.get_template('talgoxe/reordering.html')
     elif method == 'GET':
@@ -465,7 +348,7 @@ def select_articles(request):
                     'has_articles_html': UserSettings.has_articles_html(request),
                     'checkboxes' : True,
                     'bokstäver' : bokstäver,
-                    'pagetitle' : '%d artiklar' % artiklar.count(),
+                    'page_title' : '%d artiklar' % artiklar.count(),
                     'print_on_demand': True }
 
     return HttpResponse(template.render(context, request))

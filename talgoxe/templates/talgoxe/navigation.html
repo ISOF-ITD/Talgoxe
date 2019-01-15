@@ -2,7 +2,7 @@
     <ul>
         <li><p>Användare: {{ request.user }}</p></li>
         <li>
-            {% if create_article %}
+            {% if is_create_article_page %}
                 <a class="active" href="{% url 'edit' %}">Skapa artikel</a>
             {% else %}
                 <a href="{% url 'edit' %}">Skapa artikel</a>
@@ -10,13 +10,13 @@
         </li>
         <li>
             {% if current_article %}
-                {% if edit_article %}
+                {% if is_edit_article_page %}
                     <a class="active" href="{% url 'edit' current_article.id %}">Redigera artikel</a>
                 {% else %}
                     <a href="{% url 'edit' current_article.id %}">Redigera artikel</a>
                 {% endif %}
             {% else %}
-                {% if edit_article %}
+                {% if is_edit_article_page %}
                     <a class="active" href="{% url 'edit' %}">Redigera artikel</a>
                 {% else %}
                     <a href="{% url 'edit' %}">Redigera artikel</a>
