@@ -63,6 +63,7 @@ function showAllArticles(event) {
             }
         });
 
+        // alert(JSON.stringify(showArticleIds));
         // Get articles as html.
         webAddress = $('.edit-article').attr('action');
         webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
@@ -258,7 +259,6 @@ $(document).ready(function() {
                     copyString = copyString + type[0].value + '@' + lemma[0].value;
                 }
             )
-            $(".clipboard")[0].value = copyString;
 
             // Get clipboard object.
             copyStringObject = { clipboard: copyString };
@@ -301,8 +301,6 @@ $(document).ready(function() {
             alert("Markera var raderna ska klistras in!");
         }
         else {
-            rowsString = $(".clipboard")[0].value;
-
             // Get clipboard from server.
             // Add token that confirms login to AJAX request.
             var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
@@ -324,8 +322,7 @@ $(document).ready(function() {
                     rowItems = result.clipboard.split("@");
                     // alert(JSON.stringify(rowItems));
 
-                    // rowItems = rowsString.split("@");
-                    if (isEmpty(rowsString)) {
+                    if (isEmpty(rowItems)) {
                         alert("Finns inga rader att klistra in!");
                     }
                     else {
@@ -376,7 +373,7 @@ $(document).ready(function() {
                                search_string: searchString,
                                search_type: searchType
                              };
-        searchCriteriaArray.push(searchCriteria)
+        searchCriteriaArray.push(searchCriteria);
         compareType = $("#search-compare-type2").val();
         searchString = $("#search-string2").val();
         searchType = $("#search-type2").val();
@@ -384,7 +381,7 @@ $(document).ready(function() {
                                search_string: searchString,
                                search_type: searchType
                              };
-        searchCriteriaArray.push(searchCriteria)
+        searchCriteriaArray.push(searchCriteria);
         compareType = $("#search-compare-type3").val();
         searchString = $("#search-string3").val();
         searchType = $("#search-type3").val();
@@ -392,7 +389,7 @@ $(document).ready(function() {
                                search_string: searchString,
                                search_type: searchType
                              };
-        searchCriteriaArray.push(searchCriteria)
+        searchCriteriaArray.push(searchCriteria);
         var articleSearchCriteria = { searchCriteriaArray : searchCriteriaArray }
         // alert(compareType + ' ' + searchString + ' ' + searchType);
 
@@ -410,6 +407,7 @@ $(document).ready(function() {
         webAddress = webAddress + "get_articles_by_search_criteria";
         // alert(webAddress);
         // alert(JSON.stringify(searchCriteria));
+        // alert(JSON.stringify(articleSearchCriteria));
         $.post(
             webAddress,
             articleSearchCriteria,

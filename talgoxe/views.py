@@ -153,10 +153,7 @@ def get_articles_by_search_criteria(request):
 @login_required
 def get_articles_html(request):
     # Get articles.
-    articles = []
-    article_ids = request.POST.getlist('showArticleIds[]')
-    articles_database = Artikel.objects.filter(id__in=article_ids)
-    articles += articles_database
+    articles = ArticleManager.get_articles_by_ids(request.POST.getlist('showArticleIds[]'))
     UserSettings.update_articles_html(request, articles)
 
     # Get articles as HTML.
@@ -167,7 +164,6 @@ def get_articles_html(request):
         string_builder.append("<h2>Artiklar</h2>")
     string_builder.append('<div class="show-articles-column">')
     for article in articles:
-        article.collect()
         string_builder.append(get_article_html_by_article(request, article))
     string_builder.append("</div>")
 
@@ -185,31 +181,37 @@ def get_clipboard(request):
 
 @login_required
 def get_file(request, format):
-    if format not in ['pdf', 'odt', 'docx']:
+    if (format not in ['pdf', 'odt', 'docx']):
         raise UnsupportedFormat(format)
     template = loader.get_template('talgoxe/get_file.html')
     exporter = Exporter(format)
     # exporter.export_letters()
-    filepath = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
-    context = {'current_article' : UserSettings.get_edit_article(request),
-               'print_on_demand': True,
-               'filepath' : filepath }
+    file_path = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
 
+    context = {
+        'current_article' : UserSettings.get_edit_article(request),
+        'filepath' : file_path,
+        'has_articles_html': UserSettings.has_articles_html(request),
+        'is_select_articles_page': True
+    }
     return HttpResponse(template.render(context, request))
+
+def get_no_file():
+    response = HttpResponse('Inga artiklar att visa.', content_type = "application/text")
+    response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
+    return response
 
 @login_required
 def get_odf_file(request):
     articles = UserSettings.get_articles_html(request)
     if (not (UserSettings.has_articles_html(request))):
-        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
-        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
-        return response
+        return get_no_file()
 
     exporter = Exporter('odt')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.oasis.opendocument.text")
+        with open(file_path, 'rb') as file_handle:
+            response = HttpResponse(file_handle.read(), content_type = "application/vnd.oasis.opendocument.text")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
@@ -218,15 +220,13 @@ def get_odf_file(request):
 def get_pdf_file(request):
     articles = UserSettings.get_articles_html(request)
     if (not (UserSettings.has_articles_html(request))):
-        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
-        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
-        return response
+        return get_no_file()
 
     exporter = Exporter('pdf')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/pdf")
+        with open(file_path, 'rb') as file_handle:
+            response = HttpResponse(file_handle.read(), content_type = "application/pdf")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
@@ -235,121 +235,88 @@ def get_pdf_file(request):
 def get_word_file(request):
     articles = UserSettings.get_articles_html(request)
     if (not (UserSettings.has_articles_html(request))):
-        response = HttpResponse('Inga artiklar att visa.', content_type="application/text")
-        response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
-        return response
+        return get_no_file()
 
     exporter = Exporter('docx')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
-        with open(file_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        with open(file_path, 'rb') as file_handle:
+            response = HttpResponse(file_handle.read(), content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
 
 @login_required
 def index(request):
-    article = UserSettings.get_edit_article(request)
-    if (article is None):
-        return HttpResponseRedirect(reverse('edit'))
+    if (UserSettings.has_edit_article(request)):
+        article = UserSettings.get_edit_article(request)
+        return HttpResponseRedirect(reverse('edit', args = (article.id,)))
     else:
-        return HttpResponseRedirect(reverse('edit', args=(article.id,)))
+        return HttpResponseRedirect(reverse('edit'))
 
 @login_required
-def reordering(request): # TODO Fixa lista över artiklar när man POSTar efter omordning
-    method = request.META['REQUEST_METHOD']
-    if method == 'POST':
-        AccessManager.check_edit_permission(request.user)
-        ordning = []
-        for artikel in request.POST:
-            if match('^artikel-', artikel):
-                id = artikel.replace('artikel-', '')
-                ordning.append(Artikel.objects.get(id = id))
-        föreArtikel = ordning[0]
-        föreRang = 1
-        for artikel in ordning[1:]:
-            if artikel.lemma != föreArtikel.lemma and föreRang == 1:
-                föreRang = 0
-            if föreArtikel.rang != föreRang:
-                föreArtikel.rang = föreRang
-                föreArtikel.save()
-            if artikel.lemma == föreArtikel.lemma:
-                föreRang += 1
-            else:
-                föreRang = 1
-            föreArtikel = artikel
-    template = loader.get_template('talgoxe/search.html')
-    uri = "%s://%s%s" % (request.scheme, request.META['HTTP_HOST'], request.path)
-    if 'q' in request.GET:
-        söksträng = request.GET['q']
-    else:
-        return HttpResponse(template.render({ 'q' : 'NULL', 'uri' : uri }, request))
-    if 'sök-överallt' in request.GET and request.GET['sök-överallt'] != 'None':
-        sök_överallt = request.GET['sök-överallt']
-    else:
-        sök_överallt = None
-    if sök_överallt:
-        sök_överallt_eller_inte = 'söker överallt'
-    else:
-        sök_överallt_eller_inte = 'söker bara uppslagsord'
-    artiklar = []
-    search_stick_words = Artikel.objects.filter(lemma_sortable__contains = Artikel.get_lemma_sortable(söksträng))
-    artiklar += search_stick_words
-    if sök_överallt:
-        spolar = Spole.objects.filter(text__contains = söksträng).select_related('artikel')
-        artiklar += [spole.artikel for spole in spolar]
-        articleIds = []
-        for article in artiklar:
-            articleIds.append(article.id)
-        artiklar = []
-        search_article_field_content = Artikel.objects.filter(id__in = articleIds)
-        artiklar += search_article_field_content
-    context = {
-            'current_article' : UserSettings.get_edit_article(request),
-            'q' : söksträng,
-            'artiklar' : artiklar,
-            'has_articles_html': UserSettings.has_articles_html(request),
-            'page_title' : '%d sökresultat för ”%s” (%s)' % (len(artiklar), söksträng, sök_överallt_eller_inte),
-            'uri' : uri,
-            'sök_överallt' : sök_överallt,
-        }
+def reordering(request):
+    # Get article ids.
+    article_ids = []
+    for article in request.POST:
+        if match('^artikel-', article):
+            article_ids.append(int(article.replace('artikel-', '')))
 
+    if (request.META['REQUEST_METHOD'] == 'POST'):
+        # Update article order.
+        AccessManager.check_edit_permission(request.user)
+        ArticleManager.update_article_order(article_ids)
+
+    template = loader.get_template('talgoxe/reordering.html')
+    articles = ArticleManager.get_articles_by_ids(article_ids)
+    context = {
+        'articles' : articles,
+        'current_article' : UserSettings.get_edit_article(request),
+        'has_articles_html' : UserSettings.has_articles_html(request),
+        'is_select_articles_page' : True,
+        'page_title' : f'{len(articles)} artiklar',
+        'titel': f'Ditt urval på {len(articles)} artiklar'
+    }
     return HttpResponse(template.render(context, request))
 
 @login_required
 def select_articles(request):
     # Artikel.update_lemma_sortable()
     method = request.META['REQUEST_METHOD']
-    template = loader.get_template('talgoxe/select_articles.html')
-    if method == 'POST':
-        artiklar = []
-        for key in request.POST:
-            mdata = match('selected-(\d+)', key)
-            bdata = match('bokstav-(.)', key)
-            if mdata:
-                artiklar.append(Artikel.objects.get(id = int(mdata.group(1))))
-            elif bdata:
-                hel_bokstav = Artikel.objects.filter(lemma__startswith = bdata.group(1))
-                artiklar += hel_bokstav
-        context = { 'current_article' : UserSettings.get_edit_article(request),
-                    'artiklar' : artiklar,
-                    'has_articles_html': UserSettings.has_articles_html(request),
-                    'redo' : True,
-                    'titel' : 'Ditt urval på %d artiklar' % len(artiklar),
-                    'page_title' : '%d artiklar' % len(artiklar),
-                    'print_on_demand': True }
+    if (method == 'POST'):
+        articles = []
+        for article_selection in request.POST:
+            article_id = match('selected-(\d+)', article_selection)
+            letter = match('bokstav-(.)', article_selection)
+            if article_id:
+                articles.append(ArticleManager.get_article(int(article_id.group(1), False)))
+            elif letter:
+                articles += ArticleManager.get_articles_by_letter(letter.group(1), False)
+
         template = loader.get_template('talgoxe/reordering.html')
-    elif method == 'GET':
-        artiklar = Artikel.objects.order_by('lemma', 'rang')
-        bokstäver = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
-        context = { 'current_article' : UserSettings.get_edit_article(request),
-                    'artiklar' : artiklar,
-                    'has_articles_html': UserSettings.has_articles_html(request),
-                    'checkboxes' : True,
-                    'bokstäver' : bokstäver,
-                    'page_title' : '%d artiklar' % artiklar.count(),
-                    'print_on_demand': True }
+        context = {
+            'articles' : articles,
+            'current_article' : UserSettings.get_edit_article(request),
+            'has_articles_html': UserSettings.has_articles_html(request),
+            'is_select_articles_page': True,
+            'page_title' : f'{len(articles)} artiklar',
+            'titel': f'Ditt urval på {len(articles)} artiklar'
+        }
+
+    elif (method == 'GET'):
+        articles = Artikel.objects.all()
+        alphabet = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
+
+        template = loader.get_template('talgoxe/select_articles.html')
+        context = {
+            'artiklar' : articles,
+            'current_article' : UserSettings.get_edit_article(request),
+            'has_articles_html': UserSettings.has_articles_html(request),
+            'checkboxes' : True,
+            'bokstäver' : alphabet,
+            'page_title' : f'{articles.count()} artiklar',
+            'is_select_articles_page': True
+        }
 
     return HttpResponse(template.render(context, request))
 
@@ -366,7 +333,6 @@ def update_checked_articles(request):
         article_ids_dictionary[int(article_id)] = article_id
     for article in UserSettings.get_search_articles(request):
         article.checked = (article.id in article_ids_dictionary)
-    articles = UserSettings.get_search_articles(request)
 
     data = {
         'checkedArticlesUpdated': True

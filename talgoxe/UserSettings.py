@@ -70,6 +70,11 @@ class UserSettings:
         return (len(articles_html) > 0) and not (articles_html[0] is None)
 
     @staticmethod
+    def has_edit_article(request):
+        article = UserSettings.get_edit_article(request)
+        return not (article is None)
+
+    @staticmethod
     def update_clipboard(request, clipboard):
         settings = UserSettings.get_settings(request)
         settings['clipboard'] = clipboard

@@ -2,9 +2,6 @@
 
 {% include "talgoxe/navigation.html" %}
 
-{% if q == 'NULL' %}
-    Ingen söksträng.  Försök <span style="margin-top:70px;">{{ uri }}?q=söksträng</span>
-{% else %}
   <h2>{{ titel }}</h2>
 
   <p>
@@ -17,7 +14,7 @@
     <button id="omordna">Omordna</button>
   </p>
 
-  <form action="{% url 'reordering' %}?q={{ q }}&sök-överallt={{ sök_överallt }}" method="POST" id="omordna-form">
+  <form action="{% url 'reordering' %}" method="POST" id="omordna-form">
     {% csrf_token %}
     <p>
       <input type="submit" value="Spara ordning" id="spara-ordning" class="hidden" />
@@ -27,7 +24,7 @@
 
     <p>
       <ul>
-        {% for artikel in artiklar %}
+        {% for artikel in articles %}
           <li class="träff virgin" id="lemma-{{ artikel.id }}">
             <button class="flytta-upp hidden"><strong>↑</strong></button>
             <button class="flytta-ner hidden"><strong>↓</strong></button>
@@ -42,6 +39,5 @@
       </ul>
     </p>
   </form>
-{% endif %}
 
 {% include "talgoxe/footer.html" %}

@@ -401,6 +401,51 @@ class ArticleManager:
         return articleItemTypeIds
 
     @staticmethod
+    def get_articles_by_ids(article_ids, load_article_items = True):
+        articles = []
+        articles_database = Artikel.objects.filter(id__in=article_ids)
+        articles += articles_database
+
+        if (load_article_items and (len(articles) >= 1)):
+            # Get article items and add that information to article.
+            article_item_array = []
+            article_items = Spole.objects.filter(artikel_id__in = article_ids)
+            article_item_array += article_items
+            article_item_dictionary = {}
+            for article_id in article_ids:
+                article_item_dictionary[int(article_id)] = []
+            for article_item in article_item_array:
+                article_item_dictionary[article_item.artikel_id].append(article_item)
+            for article in articles:
+                article.collect2(article_item_dictionary[article.id])
+
+        return articles
+
+    @staticmethod
+    def get_articles_by_letter(letter, load_article_items = True):
+        articles = []
+        articles_database = Artikel.objects.filter(lemma_sortable__istartswith = letter)
+        articles += articles_database
+
+        if (load_article_items and (len(articles) >= 1)):
+            # Get article items and add that information to article.
+            article_ids = []
+            for article in articles:
+                article_ids.append(article.id)
+            article_item_array = []
+            article_items = Spole.objects.filter(artikel_id__in = article_ids)
+            article_item_array += article_items
+            article_item_dictionary = {}
+            for article_id in article_ids:
+                article_item_dictionary[int(article_id)] = []
+            for article_item in article_item_array:
+                article_item_dictionary[article_item.artikel_id].append(article_item)
+            for article in articles:
+                article.collect2(article_item_dictionary[article.id])
+
+        return articles
+
+    @staticmethod
     def get_articles_by_search_criteria(search_criteria_list):
         if (ArticleManager.is_empty_search_criteria(search_criteria_list)):
             return []
@@ -540,6 +585,25 @@ class ArticleManager:
         article.update(article_information)
         article.collect()
         return article
+
+    @staticmethod
+    def update_article_order(article_ids):
+        ordning = []
+        for article_id in article_ids:
+            ordning.append(Artikel.objects.get(id = article_id))
+        föreArtikel = ordning[0]
+        föreRang = 1
+        for artikel in ordning[1:]:
+            if artikel.lemma != föreArtikel.lemma and föreRang == 1:
+                föreRang = 0
+            if föreArtikel.rang != föreRang:
+                föreArtikel.rang = föreRang
+                föreArtikel.save()
+            if artikel.lemma == föreArtikel.lemma:
+                föreRang += 1
+            else:
+                föreRang = 1
+            föreArtikel = artikel
 
 
 article_types_by_abbreviation = {}

@@ -36,7 +36,7 @@
             </div>
         </li>
         <li>
-            {% if print_on_demand %}
+            {% if is_select_articles_page %}
                 <a class="active" href="{% url 'select_articles' %}">Anpassat urval</a>
             {% else %}
                 <a href="{% url 'select_articles' %}">Anpassat urval</a>
