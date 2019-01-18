@@ -4,7 +4,25 @@
 
 <form method="POST">
 {% csrf_token %}
-{% include "talgoxe/ordlista.html" %}
+<div>
+
+<p>Skriv ut hela bokstäver:
+<ul>
+  {% for letter in alphabet %}
+      <li class="bokstav">{{ letter|upper }} {% if checkboxes %} <input type="checkbox" name="bokstav-{{ letter }}" /> {% endif %}</li>
+  {% endfor %}
+</ul>
+</p>
+
+<p>Välja artikel:
+<input type="text" id="sok-artikel" />
+</p>
+
+<p id="searching-feedback" class="hidden">Det fanns ingen träff på din sökning på ”<span id="sökstrang">sökstrang</span>”.</p>
+
+{% include "talgoxe/lemma_list.html" %}
+
+</div>
 </p>
 </form>
 

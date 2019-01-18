@@ -2,10 +2,10 @@
   <button id="selectalla">Välj alla</button>
 {% endif %}
 <ul>
-{% for artikel in artiklar %}
+{% for article in articles %}
     <li class="hidden nobullet">
-      {% if checkboxes %}<input type="checkbox" name="select-{{ artikel.id }}" class="toselect" />{% endif %}
-      <a href="{% url 'edit' artikel.id %}" class="ordlistelement" value="{{ artikel.lemma_sortable }}">{% include "talgoxe/lemma.html" %}</a>
+      {% if checkboxes %}<input type="checkbox" name="select-{{ article.id }}" class="toselect" />{% endif %}
+      <a href="{% url 'edit' article.id %}" class="ordlistelement" value="{{ article.lemma_sortable }}">{% include "talgoxe/lemma.html" %}</a>
     </li>
 {% endfor %}
 </ul>

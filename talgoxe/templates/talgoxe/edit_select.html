@@ -4,8 +4,8 @@
 
 <h2>Välj artikel att redigera</h2>
 <ul>
-{% for artikel in articles %}
-  <li class="nobullet"><a href="{% url 'edit' artikel.id %}">{% include "talgoxe/lemma.html" %}</a></li>
+{% for article in articles %}
+  <li class="nobullet"><a href="{% url 'edit' article.id %}">{% include "talgoxe/lemma.html" %}</a></li>
 {% endfor %}
 </ul>
 

@@ -1,7 +1,0 @@
-<p>Skriv ut hela bokstäver:
-<ul>
-  {% for bokstav in bokstäver %}
-      <li class="bokstav">{{ bokstav|upper }} {% if checkboxes %} <input type="checkbox" name="bokstav-{{ bokstav }}" /> {% endif %}</li>
-  {% endfor %}
-</ul>
-</p>

@@ -401,6 +401,30 @@ class ArticleManager:
         return articleItemTypeIds
 
     @staticmethod
+    def get_articles(load_article_items = True):
+        articles = []
+        articles_database = Artikel.objects.all()
+        articles += articles_database
+
+        if (load_article_items and (len(articles) >= 1)):
+            # Get article items and add that information to article.
+            article_ids = []
+            for article in articles:
+                article_ids.append(article.id)
+            article_item_array = []
+            article_items = Spole.objects.filter(artikel_id__in = article_ids)
+            article_item_array += article_items
+            article_item_dictionary = {}
+            for article_id in article_ids:
+                article_item_dictionary[int(article_id)] = []
+            for article_item in article_item_array:
+                article_item_dictionary[article_item.artikel_id].append(article_item)
+            for article in articles:
+                article.collect2(article_item_dictionary[article.id])
+
+        return articles
+
+    @staticmethod
     def get_articles_by_ids(article_ids, load_article_items = True):
         articles = []
         articles_database = Artikel.objects.filter(id__in=article_ids)
@@ -856,16 +880,9 @@ class Exporter:
 
     # Create files, one file for each letter in the swedish alphabet.
     def export_letters(self):
-        letter = 'a'
-        while letter <= 'z':
-            self.export_letter(letter)
-            letter = chr(ord(letter) + 1)
-        letter = 'å'
-        self.export_letter(letter)
-        letter = 'ä'
-        self.export_letter(letter)
-        letter = 'ö'
-        self.export_letter(letter)
+        alphabet = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
+        for character in alphabet:
+            self.export_letter(character)
 
     def generate_pdf_paragraph(self, artikel):
         self.document.write("\\hskip-0.5em")

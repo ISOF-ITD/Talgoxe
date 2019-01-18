@@ -1,7 +1,7 @@
 {% spaceless %}
 <span class="SO">{% include "talgoxe/lemma.html" %}</span>
 {% with True as setspace %}
-    {% for segment in artikel.fjädrar %}
+    {% for segment in article.fjädrar %}
         {% if not segment.isrightdelim %}
         {% if segment.setspace %}
             <span>⁠ ⁠</span>
@@ -23,5 +23,5 @@
         {% endif %}
     {% endfor %}
 {% endwith %}
-<span class="träff hidden" id="lemma-{{ artikel.id }}" /><!-- FIXME Kan egentligen leda till att få varje artikel två gånger när man skriver ut! -->
+<span class="träff hidden" id="lemma-{{ article.id }}" /><!-- FIXME Kan egentligen leda till att få varje artikel två gånger när man skriver ut! -->
 {% endspaceless %}

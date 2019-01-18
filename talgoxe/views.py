@@ -4,12 +4,11 @@ import os
 
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from django.template import loader
 from django.urls import reverse
 from re import match
-from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Artikel
-from talgoxe.models import Exporter, Spole, UnsupportedFormat
+from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Exporter, UnsupportedFormat
 from talgoxe.UserSettings import UserSettings
 
 
@@ -19,6 +18,7 @@ def delete(request, id):
     ArticleManager.delete_article(id)
     UserSettings.update_edit_article(request, None)
     return HttpResponseRedirect(reverse('edit'))
+
 
 @login_required
 def edit(request, id = None):
@@ -63,6 +63,7 @@ def edit(request, id = None):
 
     return HttpResponse(template.render(context, request))
 
+
 @login_required
 def edit_select(request, lemma):
     articles = ArticleManager.get_articles_by_lemma(lemma)
@@ -88,24 +89,27 @@ def edit_select(request, lemma):
     }
     return HttpResponse(template.render(context, request))
 
+
 @login_required
 def get_article_html(request, id):
     # This method is used in AJAX-requests and the returned HTML is used as data.
     article = ArticleManager.get_article(id)
-    template = loader.get_template('talgoxe/artikel.html')
-    context = { 'artikel' : article, 'format' : format }
+    template = loader.get_template('talgoxe/article.html')
+    context = { 'article' : article, 'format' : format }
     return HttpResponse(template.render(context, request))
+
 
 def get_article_html_by_article(request, article):
     string_builder = []
     string_builder.append("<p>")
-    template = loader.get_template('talgoxe/artikel.html')
+    template = loader.get_template('talgoxe/article.html')
     context = {
-        'artikel' : article,
+        'article' : article,
     }
     string_builder.append(template.render(context, request))
     string_builder.append("</p>")
     return ''.join(string_builder)
+
 
 @login_required
 def get_articles_by_search_criteria(request):
@@ -150,6 +154,7 @@ def get_articles_by_search_criteria(request):
     articles_dictionary["articles"] = articles_array
     return JsonResponse(articles_dictionary, safe = False)
 
+
 @login_required
 def get_articles_html(request):
     # Get articles.
@@ -172,12 +177,14 @@ def get_articles_html(request):
     }
     return JsonResponse(data)
 
+
 @login_required
 def get_clipboard(request):
     data = {
         'clipboard': UserSettings.get_clipboard(request)
     }
     return JsonResponse(data)
+
 
 @login_required
 def get_file(request, format):
@@ -196,10 +203,12 @@ def get_file(request, format):
     }
     return HttpResponse(template.render(context, request))
 
+
 def get_no_file():
     response = HttpResponse('Inga artiklar att visa.', content_type = "application/text")
     response['Content-Disposition'] = 'inline; filename=IngaArtiklarAttVisa'
     return response
+
 
 @login_required
 def get_odf_file(request):
@@ -216,6 +225,7 @@ def get_odf_file(request):
             return response
     raise Http404
 
+
 @login_required
 def get_pdf_file(request):
     articles = UserSettings.get_articles_html(request)
@@ -230,6 +240,7 @@ def get_pdf_file(request):
             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
             return response
     raise Http404
+
 
 @login_required
 def get_word_file(request):
@@ -246,6 +257,7 @@ def get_word_file(request):
             return response
     raise Http404
 
+
 @login_required
 def index(request):
     if (UserSettings.has_edit_article(request)):
@@ -253,6 +265,7 @@ def index(request):
         return HttpResponseRedirect(reverse('edit', args = (article.id,)))
     else:
         return HttpResponseRedirect(reverse('edit'))
+
 
 @login_required
 def reordering(request):
@@ -279,6 +292,7 @@ def reordering(request):
     }
     return HttpResponse(template.render(context, request))
 
+
 @login_required
 def select_articles(request):
     # Artikel.update_lemma_sortable()
@@ -304,26 +318,28 @@ def select_articles(request):
         }
 
     elif (method == 'GET'):
-        articles = Artikel.objects.all()
+        articles = ArticleManager.get_articles(False)
         alphabet = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
 
         template = loader.get_template('talgoxe/select_articles.html')
         context = {
-            'artiklar' : articles,
-            'current_article' : UserSettings.get_edit_article(request),
-            'has_articles_html': UserSettings.has_articles_html(request),
+            'alphabet' : alphabet,
+            'articles' : articles,
             'checkboxes' : True,
-            'bokstäver' : alphabet,
-            'page_title' : f'{articles.count()} artiklar',
-            'is_select_articles_page': True
+            'current_article' : UserSettings.get_edit_article(request),
+            'has_articles_html' : UserSettings.has_articles_html(request),
+            'is_select_articles_page' : True,
+            'page_title' : f'{len(articles)} artiklar'
         }
 
     return HttpResponse(template.render(context, request))
+
 
 def talgoxe_logout(request):
     logout(request)
     template = loader.get_template("talgoxe/logout.html")
     return HttpResponse(template.render({ }, request))
+
 
 @login_required
 def update_checked_articles(request):
@@ -338,6 +354,7 @@ def update_checked_articles(request):
         'checkedArticlesUpdated': True
     }
     return JsonResponse(data)
+
 
 @login_required
 def update_clipboard(request):
