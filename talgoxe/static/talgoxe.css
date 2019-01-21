@@ -212,7 +212,7 @@ body {
 #number-of-found-articles {
   border: 0px;
   display: inline;
-  align:right;
+  text-align:right;
   margin-right: 4px;
 }
 
