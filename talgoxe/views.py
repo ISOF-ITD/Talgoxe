@@ -8,7 +8,10 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from django.template import loader
 from django.urls import reverse
 from re import match
-from talgoxe.models import AccessManager, ArticleManager, ArticleSearchCriteria, Exporter, UnsupportedFormat
+from talgoxe.AccessManager import AccessManager
+from talgoxe.ArticleManager import ArticleManager
+from talgoxe.common_functions import *
+from talgoxe.models import ArticleSearchCriteria, Exporter, UnsupportedFormat
 from talgoxe.UserSettings import UserSettings
 
 
@@ -319,7 +322,7 @@ def select_articles(request):
 
     elif (method == 'GET'):
         articles = ArticleManager.get_articles(False)
-        alphabet = [chr(i) for i in range(0x61, 0x7B)] + ['å', 'ä', 'ö']
+        alphabet = get_swedish_alphabet()
 
         template = loader.get_template('talgoxe/select_articles.html')
         context = {

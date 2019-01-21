@@ -144,8 +144,8 @@
                 {% for search_article in search_articles %}
                     <li class="nobullet search-article-result-row">
                         <a href="{% url 'edit' search_article.id %}" value="{{search_article.id}}" onClick="showArticle({{search_article.id}})" />
-                            {% if search_article.rank %}
-                                <sup>search_article.rank</sup>
+                            {% if search_article.rang %}
+                                <sup>{{search_article.rang}}</sup>
                             {% endif %}
                             {{search_article.lemma}}
                         </a>
