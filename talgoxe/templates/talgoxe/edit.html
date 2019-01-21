@@ -145,9 +145,10 @@
                     <li class="nobullet search-article-result-row">
                         <a href="{% url 'edit' search_article.id %}" value="{{search_article.id}}" onClick="showArticle({{search_article.id}})" />
                             {% if search_article.rang %}
-                                <sup>{{search_article.rang}}</sup>
+                                <sup>{{search_article.rang}}</sup>{{search_article.lemma}}
+                            {% else %}
+                                {{search_article.lemma}}
                             {% endif %}
-                            {{search_article.lemma}}
                         </a>
                         <button type="button" class="show-article" onClick="showArticle({{search_article.id}})">Visa</button>
                         <input type="checkbox" class="select-article" onClick="showArticleCheckedChange({{search_article.id}})"
