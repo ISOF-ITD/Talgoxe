@@ -9,6 +9,32 @@ function isNotEmpty(val){
     return !isEmpty(val);
 }
 
+function resetArticleSearchCriteria() {
+    // Add token that confirms login to AJAX request.
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    });
+
+    // Get articles as html.
+    webAddress = $('.edit-article').attr('action');
+    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
+    webAddress = webAddress + "reset_article_search_criteria";
+    $.post(
+        webAddress,
+        null,
+        function(result) {
+            $(".search-select-field").val('Lemma');
+            $(".search-compare-type").val('StartsWith');
+            $(".search-string").val('');
+        }
+    );
+
+    return false;
+}
+
 function showArticle(articleId) {
     // alert(JSON.stringify(articleId));
     var showArticleIdsArray = [];
@@ -211,6 +237,8 @@ $(document).ready(function() {
     $('.show-all-articles-button').click(showAllArticles);
 
     $('.show-selected-articles-button').click(showSelectedArticles);
+
+    $('.reset-search-criteria-button').click(resetArticleSearchCriteria);
 
     function removeRow(event) {
         event.preventDefault();

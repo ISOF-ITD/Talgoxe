@@ -86,7 +86,7 @@
         <h2>S&ouml;k</h2>
         <form class="search-article" action="{% url 'edit' %}" method="POST">
             <div class="search-article-criteria">
-                <select id="search-type1" class="search-select">
+                <select id="search-type1" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_one.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
                   <option value="ArticleItem" {% if search_criteria_one.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_one.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
@@ -101,7 +101,7 @@
                 <input type="text" id="search-string1" class="search-string" value="{{ search_criteria_one.search_string }}" />
             </div>
             <div class="search-article-criteria">
-                <select id="search-type2" class="search-select">
+                <select id="search-type2" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_two.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
                   <option value="ArticleItem" {% if search_criteria_two.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_two.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
@@ -116,7 +116,7 @@
                 <input type="text" id="search-string2" class="search-string" value="{{ search_criteria_two.search_string }}"  />
             </div>
             <div class="search-article-criteria">
-                <select id="search-type3" class="search-select">
+                <select id="search-type3" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_three.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
                   <option value="ArticleItem" {% if search_criteria_three.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_three.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
@@ -132,6 +132,7 @@
             </div>
             <div>
                 <input type="submit" class="search-article-button" value="S&ouml;k" default />
+                <input type="submit" class="reset-search-criteria-button" value="Rensa" default />
                 <div id="number-of-found-articles">
                     Antal artiklar = {{search_articles|length}}
                 </div>

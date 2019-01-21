@@ -46,6 +46,10 @@ body {
   padding: 0px;
 }
 
+.reset-search-criteria-button {
+  margin-left: 10px;
+}
+
 .select-article {
   float: right;
   margin-right: 4px;
@@ -208,7 +212,7 @@ body {
 #number-of-found-articles {
   border: 0px;
   display: inline;
-  float:right;
+  align:right;
   margin-right: 4px;
 }
 

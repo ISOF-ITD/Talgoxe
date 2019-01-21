@@ -104,5 +104,10 @@ class UserSettings:
 
     @staticmethod
     def update_search_criteria(request, search_criteria):
+        if (search_criteria is None):
+            search_criteria = [ArticleSearchCriteria(),
+                               ArticleSearchCriteria(),
+                               ArticleSearchCriteria()]
+
         settings = UserSettings.get_settings(request)
         settings['searchCriteria'] = search_criteria

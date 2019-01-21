@@ -345,6 +345,15 @@ def talgoxe_logout(request):
 
 
 @login_required
+def reset_article_search_criteria(request):
+    UserSettings.update_search_criteria(request, None)
+    data = {
+        'articleSearchCriteriaUpdated': True
+    }
+    return JsonResponse(data)
+
+
+@login_required
 def update_checked_articles(request):
     article_ids_dictionary = {}
     article_ids = request.POST.getlist('checkedArticleIds[]')
