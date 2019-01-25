@@ -20,7 +20,7 @@ body {
 #artikel {
   vertical-align: top;
   border: 1px solid black;
-  width: 28%;
+  width: 33%;
   height: 480px;
   margin-left: 2%;
   margin-right: 2%;
@@ -47,7 +47,16 @@ body {
 }
 
 .reset-search-criteria-button {
+  font-size: 80%;
   margin-left: 10px;
+}
+
+.show-selected-articles-button {
+  font-size: 80%;
+}
+
+.show-all-articles-button {
+  font-size: 80%;
 }
 
 .select-article {
@@ -57,12 +66,15 @@ body {
 }
 
 .search-article-button {
+  background: rgb(200, 255, 200);
   display: inline;
+  font-size: 80%;
 }
 
 .search-article-criteria {
   border: 1px solid black;
   margin-bottom: 4px;
+  font-size: 80%;
 }
 
 .search-article div {
@@ -105,7 +117,7 @@ body {
 
 #inmatning {
   border: 1px solid black;
-  width: 47%;
+  width: 42%;
   height: 410px;
   font-family: 'Courier';
   padding: 0px;
@@ -169,7 +181,7 @@ body {
   border: 1px solid black;
   overflow-y: scroll;
   overflow-x: hidden;
-  height: 327px;
+  height: 359px;
   margin-bottom: 0px;
   margin-left: 0px;
   margin-right: 0px;
@@ -213,7 +225,9 @@ body {
   border: 0px;
   display: inline;
   float: right;
+  font-size: 90%;
   margin-right: 4px;
+  margin-bottom: 8px;
 }
 
 #handle-article {
@@ -248,6 +262,10 @@ body {
 
 .show-all-articles-button {
   float: right;
+}
+
+.show-articles-column p {
+  margin-left: 4px;
 }
 
 #ordlista {

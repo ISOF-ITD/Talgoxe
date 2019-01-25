@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from talgoxe.ArticleManager import ArticleManager
 from talgoxe.models import ArticleSearchCriteria
 
 userSettings = {}
@@ -84,6 +85,21 @@ class UserSettings:
         articles = []
         articles.append(article)
         UserSettings.update_articles_html(request, articles)
+
+    @staticmethod
+    def update_articles_cache(request):
+        # Refresh cached information.
+        if (UserSettings.has_edit_article(request)):
+            edit_article = UserSettings.get_edit_article(request)
+            edit_article = ArticleManager.get_article(edit_article.id)
+            UserSettings.update_edit_article(request, edit_article)
+
+        if (UserSettings.has_articles_html(request)):
+            article_ids = []
+            for article in UserSettings.get_articles_html(request):
+                article_ids.append(article.id)
+            articles_html = ArticleManager.get_articles_by_ids(article_ids)
+            UserSettings.update_articles_html(request, articles_html)
 
     @staticmethod
     def update_articles_html(request, articles):

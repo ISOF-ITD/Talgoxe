@@ -31,10 +31,12 @@ def edit(request, id = None):
         if (id is None):
             # Create new article.
             article = ArticleManager.create_article(request.POST)
+            UserSettings.update_edit_article(request, article)
             return HttpResponseRedirect(reverse('edit', args=(article.id,)))
         else:
             # Update existing article.
             article = ArticleManager.update_article(id, request.POST)
+            UserSettings.update_articles_cache(request)
 
     template = loader.get_template('talgoxe/edit.html')
     page_title = 'Svenskt dialektlexikon'
@@ -187,7 +189,6 @@ def get_clipboard(request):
         'clipboard': UserSettings.get_clipboard(request)
     }
     return JsonResponse(data)
-
 
 @login_required
 def get_file(request, format):
