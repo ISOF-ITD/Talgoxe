@@ -1,6 +1,14 @@
 from talgoxe.common_functions import *
 from talgoxe.models import Artikel, Spole, Typ
 
+
+class ArticleSearchCriteria:
+    def __init__(self):
+        self.compare_type = "StartsWith"
+        self.search_string = ""
+        self.search_type = "Lemma"
+
+
 class ArticleManager:
 
     @staticmethod

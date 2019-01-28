@@ -9,9 +9,10 @@ from django.template import loader
 from django.urls import reverse
 from re import match
 from talgoxe.AccessManager import AccessManager
-from talgoxe.ArticleManager import ArticleManager
+from talgoxe.ArticleManager import ArticleManager, ArticleSearchCriteria
+from talgoxe.ExportArticlesToFile import ExportArticlesToFile
 from talgoxe.common_functions import *
-from talgoxe.models import ArticleSearchCriteria, Exporter, UnsupportedFormat
+from talgoxe.models import UnsupportedFormat
 from talgoxe.UserSettings import UserSettings
 
 
@@ -195,7 +196,7 @@ def get_file(request, format):
     if (format not in ['pdf', 'odt', 'docx']):
         raise UnsupportedFormat(format)
     template = loader.get_template('talgoxe/get_file.html')
-    exporter = Exporter(format)
+    exporter = ExportArticlesToFile(format)
     # exporter.export_letters()
     file_path = exporter.export(list(map(lambda s: s.strip(), request.GET['ids'].split(','))))
 
@@ -220,7 +221,7 @@ def get_odf_file(request):
     if (not (UserSettings.has_articles_html(request))):
         return get_no_file()
 
-    exporter = Exporter('odt')
+    exporter = ExportArticlesToFile('odt')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as file_handle:
@@ -236,7 +237,7 @@ def get_pdf_file(request):
     if (not (UserSettings.has_articles_html(request))):
         return get_no_file()
 
-    exporter = Exporter('pdf')
+    exporter = ExportArticlesToFile('pdf')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as file_handle:
@@ -252,7 +253,7 @@ def get_word_file(request):
     if (not (UserSettings.has_articles_html(request))):
         return get_no_file()
 
-    exporter = Exporter('docx')
+    exporter = ExportArticlesToFile('docx')
     file_path = exporter.export_articles(articles, request.user.username)
     if os.path.exists(file_path):
         with open(file_path, 'rb') as file_handle:

@@ -20,7 +20,7 @@ body {
 #artikel {
   vertical-align: top;
   border: 1px solid black;
-  width: 33%;
+  width: 36%;
   height: 480px;
   margin-left: 2%;
   margin-right: 2%;
@@ -117,7 +117,7 @@ body {
 
 #inmatning {
   border: 1px solid black;
-  width: 42%;
+  width: 39%;
   height: 410px;
   font-family: 'Courier';
   padding: 0px;

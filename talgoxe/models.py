@@ -1,19 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import datetime
-import docx
-import ezodf
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Max
 from math import floor
-from os import chdir, popen, rename, environ
-from os.path import abspath, dirname, join
 from re import match, split
-from shutil import copyfile
-from talgoxe.common_functions import *
-from tempfile import mkdtemp
+from talgoxe.Province import Province
 
 
 class UnsupportedFormat(Exception):
@@ -138,18 +130,18 @@ class Artikel(models.Model):
         self.fjädrar.append(segment)
 
     def flush_landskap(self):
-        sorted_landskap = sorted(self.landskap, key = Landskap.key)
+        sorted_landskap = sorted(self.landskap, key = Province.key)
         if len(sorted_landskap) > 1:
             # Remove province duplicates.
             index = 0;
             while index < (len(sorted_landskap) - 1):
-                if sorted_landskap[index].abbrev == sorted_landskap[index + 1].abbrev:
+                if sorted_landskap[index].abbreviation == sorted_landskap[index + 1].abbreviation:
                     del sorted_landskap[index]
                 else:
                     index += 1
-        sorted_landskap = Landskap.reduce_landskap(sorted_landskap)
+        sorted_landskap = Province.reduce_provinces(sorted_landskap)
         for ls in sorted_landskap:
-           fjäder = Fjäder(ArticleTypeManager.get_type_by_abbreviation('g'), ls.abbrev)
+           fjäder = Fjäder(ArticleTypeManager.get_type_by_abbreviation('g'), ls.abbreviation)
            if self.preventnextspace and sorted_landskap.index(ls) == 0:
                fjäder.preventspace = True
            self.append_fjäder(fjäder, True)
@@ -169,7 +161,7 @@ class Artikel(models.Model):
                 continue
             if state == 'ALLMÄNT':
                 if spole.isgeo():
-                    self.landskap = [Landskap(spole.text)]
+                    self.landskap = [Province(spole.text)]
                     state = 'GEOGRAFI'
                 else:
                     i = self.analyse_spole(i)
@@ -177,7 +169,7 @@ class Artikel(models.Model):
                     # state är fortfarande 'ALLMÄNT'
             elif state == 'GEOGRAFI':
                 if spole.isgeo():
-                    self.landskap.append(Landskap(spole.text))
+                    self.landskap.append(Province(spole.text))
                     # state är fortfarande 'GEOGRAFI'
                 else:
                     self.flush_landskap()
@@ -209,11 +201,11 @@ class Artikel(models.Model):
             try:
                 type = Typ.objects.get(kod=bit[0])
             except ObjectDoesNotExist:  # FIXME Do something useful!
-                # TODO >>> Type.objects.create(abbrev = 'OG', name = 'Ogiltig', id = 63)
+                # TODO >>> Type.objects.create(abbreviation = 'OG', name = 'Ogiltig', id = 63)
                 type = Typ.objects.get(kod='OG')
             text = bit[1]
-            if type == gtype and text.title() in Landskap.short_abbrev.keys():
-                text = Landskap.short_abbrev[text.title()]
+            if type == gtype and text.title() in Province.province_abbreviation.keys():
+                text = Province.province_abbreviation[text.title()]
             data = self.get_spole(i)
             if data and (data.artikel_id != None):
                 data.pos = i
@@ -293,6 +285,7 @@ class Segment(): # Fjäder!
         else:
             return self.text.strip()
 
+
 class Typ(models.Model):
     kod = models.CharField(max_length = 5)
     namn = models.CharField(max_length = 30)
@@ -311,15 +304,9 @@ class Typ(models.Model):
         return out
 
 
-class ArticleSearchCriteria:
-    def __init__(self):
-        self.compare_type = "StartsWith"
-        self.search_string = ""
-        self.search_type = "Lemma"
-
-
 article_types_by_abbreviation = {}
 article_types_by_id = {}
+
 
 class ArticleTypeManager:
 
@@ -426,371 +413,4 @@ class Fjäder:
 
     def setspace(self):
         return not self.preventspace and not self.isrightdelim() # TODO Lägga till det med den föregående fjädern
-
-class Landskap():
-    ordning = [
-        u'Skåne', u'Blek', u'Öland', u'Smål', u'Hall', u'Västg', u'Boh', u'Dalsl', u'Gotl', u'Östg', # 0-9
-        u'Götal', # 10
-        u'Sörml', u'Närke', u'Värml', u'Uppl', u'Västm', u'Dal', # 11 - 16
-        u'Sveal', # 17
-        u'Gästr', u'Häls', u'Härj', u'Med', u'Jämtl', u'Ång', u'Västb', u'Lappl', u'Norrb', # 18 - 26
-        u'Norrl', # 27
-    ]
-
-    # TODO: Something more object-oriented (methods short, long, rank)
-    short_abbrev = {
-      u'Sk' : u'Skåne',
-      u'Bl' : u'Blek',
-      u'Öl' : u'Öland',
-      u'Sm' : u'Smål',
-      u'Ha' : u'Hall',
-      u'Vg' : u'Västg',
-      u'Bo' : u'Boh',
-      u'Dsl': u'Dalsl',
-      u'Gl' : u'Gotl',
-      u'Ög' : u'Östg',
-      u'Götal' : u'Götal',
-      u'Sdm': u'Sörml',
-      u'Nk' : u'Närke',
-      u'Vrm': u'Värml',
-      u'Ul' : u'Uppl',
-      u'Vstm' : u'Västm',
-      u'Dal': u'Dal',
-      u'Sveal' : u'Sveal',
-      u'Gst': u'Gästr',
-      u'Hsl': u'Häls',
-      u'Hrj': u'Härj',
-      u'Mp' : u'Med',
-      u'Jl' : u'Jämtl',
-      u'Åm' : u'Ång',
-      u'Vb' : u'Västb',
-      u'Lpl': u'Lappl',
-      u'Nb' : u'Norrb',
-      u'Norrl' : u'Norrl',
-    }
-
-    def cmp(self, other):
-        if self.abbrev in self.ordning and other.abbrev in self.ordning:
-            return self.cmp(self.ordning.index(self.abbrev), self.ordning.index(other.abbrev))
-        else:
-            return 0
-
-    @staticmethod
-    def key(self):
-        if self.abbrev in self.ordning:
-            return self.ordning.index(self.abbrev)
-        else:
-            return -1 # Så det är lättare att se dem
-
-    def __init__(self, abbrev):
-        self.abbrev = abbrev.capitalize()
-
-    def __str__(self):
-        return self.abbrev
-
-    @staticmethod
-    def reduce_landskap(lista):
-        antal_per_del = { 'Götal' : 7, 'Sveal' : 4, 'Norrl' : 6 }
-        delar = ['Götal', 'Sveal', 'Norrl']
-        landskap_per_del = { 'Götal' : [], 'Sveal' : [], 'Norrl' : [] }
-        for landskap in lista:
-            if Landskap.ordning.index(landskap.abbrev) < Landskap.ordning.index('Götal'):
-                landskap_per_del['Götal'].append(landskap)
-            elif Landskap.ordning.index(landskap.abbrev) < Landskap.ordning.index('Sveal'):
-                landskap_per_del['Sveal'].append(landskap)
-            else:
-                landskap_per_del['Norrl'].append(landskap)
-            # print(landskap)
-        # print(len(landskap_per_del['Götal']))
-        utskriftsform = []
-        for landsdel, landskapen in landskap_per_del.items():
-            if len(landskapen) >= antal_per_del[landsdel]:
-                utskriftsform.append(Landskap(landsdel))
-            else:
-                utskriftsform += sorted(landskapen, key = Landskap.key)
-
-        return utskriftsform
-
-class Exporter:
-    def __init__(self, format):
-        self.format = format
-        initialisers = {
-            'pdf' : self.start_pdf,
-            'odt' : self.start_odf,
-            'docx' : self.start_docx,
-        }
-
-        generators = {
-            'pdf' : self.generate_pdf_paragraph,
-            'odt' : self.generate_odf_paragraph,
-            'docx' : self.generate_docx_paragraph,
-        }
-
-        savers = {
-            'pdf' : self.save_pdf,
-            'odt' : self.save_odf,
-            'docx' : self.save_docx,
-        }
-
-        self.start_document = initialisers[format]
-        self.generate_paragraph = generators[format]
-        self.save_document = savers[format]
-
-    def export_letter(self, letter):
-        # Get data from database.
-        artiklar = []
-        hel_bokstav = Artikel.objects.filter(lemma__startswith=letter)
-        artiklar += hel_bokstav
-
-        if len(artiklar) >= 1:
-            artikelIds = []
-            for artikel in artiklar:
-                artikelIds.append(artikel.id)
-            spoles = []
-            spolar = Spole.objects.filter(artikel_id__in=artikelIds)
-            spoles += spolar
-            articleSpoles = {}
-            for id in artikelIds:
-                articleSpoles[id] = []
-            for spole in spoles:
-                articleSpoles[spole.artikel_id].append(spole)
-
-            # Create file with article information.
-            self.dirname = mkdtemp('', 'SDLartikel')
-            self.filename = join(self.dirname, 'sdl.%s' % self.format)
-            self.start_document()
-            filename = letter + datetime.datetime.now().strftime("%Y%m%d") + '.' + self.format
-            for artikel in artiklar:
-                artikel.collect2(articleSpoles[artikel.id])
-                self.generate_paragraph(artikel)
-            self.save_document()
-            staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
-            rename(self.filename, join(staticpath, filename))
-
-    # Create files, one file for each letter in the swedish alphabet.
-    def export_letters(self):
-        alphabet = get_swedish_alphabet()
-        for character in alphabet:
-            self.export_letter(character)
-
-    def generate_pdf_paragraph(self, artikel):
-        self.document.write("\\hskip-0.5em")
-        if artikel.rang > 0:
-            self.document.write('\lohi[left]{}{\SDL:SO{%d}}' % artikel.rang) # TODO Real superscript
-        self.document.write("\\SDL:SO{%s}" % artikel.lemma)
-        for segment in artikel.fjädrar: # TODO Handle moments!  segment.ismoment and segment.display
-            if not segment.preventspace and not segment.isrightdelim():
-                self.document.write(' ') # FIXME But not if previous segment is left delim!
-            type = segment.typ
-            text = segment.format().replace(u'\\', '\\textbackslash ').replace('~', '{\\char"7E}')
-            self.document.write(('\\SDL:%s{%s}' % (type, text)))
-        self.document.write("\\par")
-
-    def start_pdf(self):
-        self.document = open(self.filename.replace('.pdf', '.tex'), 'w')
-        self.document.write("\\mainlanguage[sv]")
-        self.document.write("\\setupbodyfont[pagella, 12pt]\n")
-        self.document.write("\\setuppagenumbering[state=stop]\n")
-        with open(join(dirname(abspath(__file__)), 'lib', 'sdl-setup.tex'), 'r', encoding = 'UTF-8') as file:
-            self.document.write(file.read())
-
-        self.document.write("""
-            \\starttext
-            """)
-
-        self.document.write("\\startcolumns[n=2,balance=yes]\n")
-
-    def save_pdf(self):
-        self.document.write("\\stopcolumns\n")
-        self.document.write("\\stoptext\n")
-        self.document.close()
-
-        chdir(self.dirname)
-        environ['PATH'] = "%s:%s" % (settings.CONTEXT_PATH, environ['PATH'])
-        environ['TMPDIR'] = '/tmp'
-        popen("context --batchmode sdl.tex").read()
-
-    def add_odf_style(self, type, xmlchunk):
-        self.document.inject_style("""
-            <style:style style:name="%s" style:family="text">
-                <style:text-properties %s />
-            </style:style>
-            """ % (type, xmlchunk))
-
-    def start_odf(self):
-        self.document = ezodf.newdoc(doctype = 'odt', filename = self.filename)
-        self.add_odf_style('SO', 'fo:font-weight="bold"')
-        self.add_odf_style('OK', 'fo:font-size="9pt"')
-        self.add_odf_style('G', 'fo:font-size="9pt"')
-        self.add_odf_style('DSP', 'fo:font-style="italic"')
-        self.add_odf_style('TIP', 'fo:font-size="9pt"')
-        # IP
-        self.add_odf_style('M1', 'fo:font-weight="bold"')
-        self.add_odf_style('M2', 'fo:font-weight="bold"')
-        # VH, HH, VR, HR
-        self.add_odf_style('REF', 'fo:font-weight="bold"')
-        self.add_odf_style('FO', 'fo:font-style="italic"')
-        self.add_odf_style('TIK', 'fo:font-style="italic" fo:font-size="9pt"')
-        self.add_odf_style('FLV', 'fo:font-weight="bold" fo:font-size="9pt"')
-        # ÖVP. Se nedan!
-        # BE, ÖV
-        # ÄV, ÄVK se nedan
-        # FOT
-        self.add_odf_style('GT', 'fo:font-size="9pt"')
-        self.add_odf_style('SOV', 'fo:font-weight="bold"')
-        # TI
-        # HV, INT
-        self.add_odf_style('OKT', 'fo:font-size="9pt"')
-        # VS
-        self.add_odf_style('GÖ', 'fo:font-size="9pt"')
-        # GP, UST
-        self.add_odf_style('US', 'fo:font-style="italic"')
-        # GÖP, GTP, NYR, VB
-        self.add_odf_style('OG', 'style:text-line-through-style="solid"')
-        self.add_odf_style('SP', 'fo:font-style="italic"')
-
-    def save_odf(self):
-        self.document.save()
-
-    def generate_odf_paragraph(self, artikel):
-        paragraph = ezodf.Paragraph()
-        paragraph += ezodf.Span(artikel.lemma, style_name = 'SO') # TODO Homografnumrering!
-        for segment in artikel.fjädrar:
-            type = segment.typ
-            if not type == 'KO':
-                if not segment.preventspace and not segment.isrightdelim():
-                    paragraph += ezodf.Span(' ')
-                paragraph += ezodf.Span(segment.format(), style_name = type)
-        self.document.body += paragraph
-
-    def start_docx(self):
-        self.document = docx.Document()
-        self.add_docx_styles()
-        return self.document
-
-    def save_docx(self):
-        self.document.save(self.filename)
-
-    def generate_docx_paragraph(self, artikel):
-        paragraph = self.document.add_paragraph()
-        if artikel.rang > 0:
-            paragraph.add_run(str(artikel.rang), style = 'SO').font.superscript = True
-        paragraph.add_run(artikel.lemma, style = 'SO')
-        for segment in artikel.fjädrar:
-            type = segment.typ
-            if not type == 'KO':
-                if not segment.preventspace and not segment.isrightdelim():
-                    paragraph.add_run(' ', style = self.document.styles[type])
-                if type == 'ÖVP': # TODO Något bättre
-                    run = '(' + segment.format() + ')'
-                else:
-                    run = segment.format()
-                paragraph.add_run(run, style = self.document.styles[type])
-
-    def add_docx_styles(self): # TODO Keyword arguments?
-        self.add_docx_style('SO', False, True, 12)
-        self.add_docx_style('OK', False, False, 9)
-        self.add_docx_style('G', False, False, 9)
-        self.add_docx_style('DSP', True, False, 12)
-        self.add_docx_style('TIP', False, False, 9)
-        self.add_docx_style('IP', False, False, 12)
-        self.add_docx_style('M1', False, True, 12)
-        self.add_docx_style('M2', False, True, 12)
-        self.add_docx_style('VH', False, False, 12)
-        self.add_docx_style('HH', False, False, 12)
-        self.add_docx_style('VR', False, False, 12)
-        self.add_docx_style('HR', False, False, 12)
-        self.add_docx_style('REF', False, True, 12)
-        self.add_docx_style('FO', True, False, 12)
-        self.add_docx_style('TIK', True, False, 9)
-        self.add_docx_style('FLV', False, True, 9)
-        self.add_docx_style('ÖVP', False, False, 12)
-        self.add_docx_style('BE', False, False, 12)
-        self.add_docx_style('ÖV', False, False, 12)
-        self.add_docx_style('ÄV', False, False, 12) # FIXME Skriv “även” :-)
-        self.add_docx_style('ÄVK', True, False, 12) # FIXME Skriv även även här ;-)
-        self.add_docx_style('FOT', True, False, 12)
-        self.add_docx_style('GT', False, False, 9)
-        self.add_docx_style('SOV', False, True, 12)
-        for style in ('TI', 'HV', 'INT'):
-            self.add_docx_style(style)
-        self.add_docx_style('OKT', False, False, 9)
-        self.add_docx_style('VS')
-        self.add_docx_style('GÖ', False, False, 9)
-        self.add_docx_style('GP')
-        self.add_docx_style('UST', True, False, 12)
-        self.add_docx_style('US', True, False, 12)
-        for style in ('GÖP', 'GTP', 'NYR', 'VB'):
-            self.add_docx_style(style)
-        OG = self.document.styles.add_style('OG', docx.enum.style.WD_STYLE_TYPE.CHARACTER)
-        OG.font.strike = True
-        self.add_docx_style('SP', True, False, 12)
-        self.add_docx_style('M0', False, True, 18)
-        self.add_docx_style('M3', True, False, 6)
-
-    def add_docx_style(self, type, italic = False, bold = False, size = 12):
-        style = self.document.styles.add_style(type, docx.enum.style.WD_STYLE_TYPE.CHARACTER)
-        style.base_style = self.document.styles['Default Paragraph Font']
-        if italic:
-            style.font.italic = True
-        if bold:
-            style.font.bold = True
-        style.font.size = docx.shared.Pt(size)
-
-    def export(self, ids):
-        self.dirname = mkdtemp('', 'SDLartikel')
-        self.filename = join(self.dirname, 'sdl.%s' % self.format)
-        self.start_document()
-        if (len(ids) == 0) or (len(ids) == 1 and ids[0] == ''):
-            # Nothing to do. No articles should be output to file.
-            pass
-        elif len(ids) == 1:
-            artikel = Artikel.objects.get(id = ids[0])
-            artikel.collect()
-            self.generate_paragraph(artikel)
-            filename = '%s-%s.%s' % (ids[0], artikel.lemma, self.format)
-        elif len(ids) > 1:
-            # Get data from database.
-            artiklar = []
-            hel_bokstav = Artikel.objects.filter(id__in=ids)
-            artiklar += hel_bokstav
-            spoles = []
-            # spolar = Spole.objects.filter(artikel_id__in=ids).order_by('pos').asc()
-            spolar = Spole.objects.filter(artikel_id__in=ids)
-            spoles += spolar
-            articleSpoles = {}
-            for id in ids:
-                articleSpoles[int(id)] = []
-            for spole in spoles:
-                articleSpoles[spole.artikel_id].append(spole)
-
-            # Write article information to file.
-            filename = 'sdl-utdrag.%s' % self.format # FIXME Unikt namn osv.
-            for artikel in artiklar:
-                artikel.collect2(articleSpoles[artikel.id])
-                self.generate_paragraph(artikel)
-        self.save_document()
-        staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
-        copyfile(self.filename, join(staticpath, filename))
-
-        return join('ord', filename)
-
-    def export_articles(self, articles, userName):
-        # Get temp file.
-        self.dirname = mkdtemp('', 'SDLartikel')
-        self.filename = join(self.dirname, 'sdl.%s' % self.format)
-        self.start_document()
-
-        # Write article information to file.
-        filename = f'{userName}-sdl.{self.format}'
-        for article in articles:
-            self.generate_paragraph(article)
-        self.save_document()
-
-        # Copy temp file to output file.
-        staticpath = join(dirname(abspath(__file__)), 'static', 'ord')
-        filepath = join(staticpath, filename)
-        copyfile(self.filename, filepath)
-
-        return filepath
 

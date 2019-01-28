@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from talgoxe.ArticleManager import ArticleManager
-from talgoxe.models import ArticleSearchCriteria
+from talgoxe.ArticleManager import ArticleManager, ArticleSearchCriteria
 
 userSettings = {}
 
