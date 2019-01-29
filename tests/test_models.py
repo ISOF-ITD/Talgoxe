@@ -1,21 +1,21 @@
 from django.test import TestCase
-from talgoxe.models import Landskap
+from talgoxe.models import Province
 
 class LandskapTestCase(TestCase):
     def setUp(self):
-        self.landskap0 = Landskap('Norrb')
-        self.landskap1 = Landskap('Östg')
+        self.landskap0 = Province('Norrb')
+        self.landskap1 = Province('Östg')
 
     def test_landskapens_ordning(self):
-        sorterade_landskap = sorted([self.landskap0, self.landskap1], key = Landskap.key)
+        sorterade_landskap = sorted([self.landskap0, self.landskap1], key = Province.key)
         self.assertEqual(sorterade_landskap[0], self.landskap1)
         self.assertEqual(sorterade_landskap[1], self.landskap0)
 
     def test_reduce_landskap(self):
-        input = [Landskap('Skåne'), Landskap('Blek'), Landskap('Öland'), Landskap('Smål'),
-          Landskap('Hall'), Landskap('Västg'), Landskap('Boh'), Landskap('Dalsl')]
-        self.assertEqual(Landskap.reduce_landskap(input)[0].abbrev, 'Götal')
+        input = [Province('Skåne'), Province('Blek'), Province('Öland'), Province('Smål'),
+                 Province('Hall'), Province('Västg'), Province('Boh'), Province('Dalsl')]
+        self.assertEqual(Province.reduce_landskap(input)[0].abbrev, 'Götal')
 
     def test_that_reduce_landskap_also_sorts(self):
-        bokstavsordningssorterade = [Landskap('Blek'), Landskap('Dalsl'), Landskap('Skåne'), Landskap('Smål'), Landskap('Västg')]
-        self.assertEqual(list(map(lambda ls: ls.abbrev, Landskap.reduce_landskap(bokstavsordningssorterade))), ['Skåne', 'Blek', 'Smål', 'Västg', 'Dalsl'])
+        bokstavsordningssorterade = [Province('Blek'), Province('Dalsl'), Province('Skåne'), Province('Smål'), Province('Västg')]
+        self.assertEqual(list(map(lambda ls: ls.abbrev, Province.reduce_landskap(bokstavsordningssorterade))), ['Skåne', 'Blek', 'Smål', 'Västg', 'Dalsl'])

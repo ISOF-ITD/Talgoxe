@@ -1,6 +1,28 @@
 var lastLemma;
 var copyString;
 
+function addToken() {
+    // Add token that confirms login to AJAX request.
+    var csrfToken;
+
+    csrfToken = jQuery("[name=csrfmiddlewaretoken]").val();
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader("X-CSRFToken", csrfToken);
+        }
+    });
+}
+
+function getWebAddress(){
+    // Get web address that can be used as base address in AJAX requests.
+    // This function only works in the edit article page.
+    var webAddress;
+
+    webAddress = $('.edit-article').attr('action');
+    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
+    return webAddress;
+}
+
 function isEmpty(val){
     return (val === undefined || val == null || val.length <= 0);
 }
@@ -10,20 +32,9 @@ function isNotEmpty(val){
 }
 
 function resetArticleSearchCriteria() {
-    // Add token that confirms login to AJAX request.
-    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-    });
-
-    // Get articles as html.
-    webAddress = $('.edit-article').attr('action');
-    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-    webAddress = webAddress + "reset_article_search_criteria";
+    addToken();
     $.post(
-        webAddress,
+        getWebAddress() + "reset_article_search_criteria",
         null,
         function(result) {
             $(".search-select-field").val('Lemma');
@@ -35,28 +46,54 @@ function resetArticleSearchCriteria() {
     return false;
 }
 
+function showAllArticles(event) {
+    var articleIds;
+
+    event.preventDefault();
+    // alert(JSON.stringify(idArray));
+    articleIds = $(".search-article-result a").map(function(){
+        var webAddress = this.href;
+        var indexOf = webAddress.lastIndexOf('/');
+        return webAddress.substring(indexOf + 1);
+    }).get();
+    showArticlesByIds(articleIds)
+    return false;
+}
+
 function showArticle(articleId) {
+    var articleIds;
+
+    articleIds = [];
+    articleIds.push(articleId);
+    showArticlesByIds(articleIds)
+    return false;
+}
+
+function showArticleCheckedChange(articleId) {
+    var checkedArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
+        var webAddress = this.href;
+        var indexOf = webAddress.lastIndexOf('/');
+        return webAddress.substring(indexOf + 1);
+    }).get();
+    var checkedArticles = { checkedArticleIds : checkedArticleIdsArray };
+
+    addToken();
+    $.post(
+        getWebAddress() + "update_checked_articles",
+        checkedArticles
+    );
     // alert(JSON.stringify(articleId));
-    var showArticleIdsArray = [];
-    showArticleIdsArray.push(articleId);
-    var showArticleIds = { showArticleIds : showArticleIdsArray }
+    return false;
+}
 
-    // Add token that confirms login to AJAX request.
-    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-    });
-
-    // alert('Show article = ' + articleId);
+function showArticlesByIds(articleIds) {
+    var showArticleIds;
 
     // Get articles as html.
-    webAddress = $('.edit-article').attr('action');
-    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-    webAddress = webAddress + "get_articles_html";
+    showArticleIds = { showArticleIds : articleIds }
+    addToken();
     $.post(
-        webAddress,
+        getWebAddress() + "get_articles_html",
         showArticleIds,
             function(result) {
             var appendTo = $('#artikel');
@@ -69,109 +106,16 @@ function showArticle(articleId) {
     return false;
 }
 
-function showAllArticles(event) {
-    event.preventDefault();
-    // alert(JSON.stringify(idArray));
-
-    var showArticleIdsArray = $(".search-article-result a").map(function(){
-        var webAddress = this.href;
-        var indexOf = webAddress.lastIndexOf('/');
-        return webAddress.substring(indexOf + 1);
-    }).get();
-    var showArticleIds = { showArticleIds : showArticleIdsArray }
-
-    if (isNotEmpty(showArticleIdsArray)) {
-        // Add token that confirms login to AJAX request.
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        });
-
-        // alert(JSON.stringify(showArticleIds));
-        // Get articles as html.
-        webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-        webAddress = webAddress + "get_articles_html";
-        $.post(
-            webAddress,
-            showArticleIds,
-                function(result) {
-                var appendTo = $('#artikel');
-                appendTo.empty();
-                appendTo.append(result.articlesHtml);
-                getPdfFile = $('#get-pdf-file').attr('target', '_blank')
-            }
-        );
-    }
-
-    return false;
-}
-
 function showSelectedArticles(event) {
+    var articleIds;
+
     event.preventDefault();
-
-    var showArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
+    articleIds = $(".select-article:checked").parent().children("a").map(function(){
         var webAddress = this.href;
         var indexOf = webAddress.lastIndexOf('/');
         return webAddress.substring(indexOf + 1);
     }).get();
-    var showArticleIds = { showArticleIds : showArticleIdsArray }
-    // alert(JSON.stringify(showArticleIds));
-
-    if (isNotEmpty(showArticleIdsArray)) {
-        // Add token that confirms login to AJAX request.
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        });
-
-        // Get articles as html.
-        webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-        webAddress = webAddress + "get_articles_html";
-        $.post(
-            webAddress,
-            showArticleIds,
-                function(result) {
-                var appendTo = $('#artikel');
-                appendTo.empty();
-                appendTo.append(result.articlesHtml);
-                getPdfFile = $('#get-pdf-file').attr('target', '_blank')
-            }
-        );
-    }
-
-    return false;
-}
-
-function showArticleCheckedChange(articleId) {
-    var checkedArticleIdsArray = $(".select-article:checked").parent().children("a").map(function(){
-        var webAddress = this.href;
-        var indexOf = webAddress.lastIndexOf('/');
-        return webAddress.substring(indexOf + 1);
-    }).get();
-    var checkedArticles = { checkedArticleIds : checkedArticleIdsArray };
-
-    // Add token that confirms login to AJAX request.
-    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-        }
-    });
-
-    var webAddress = $('.edit-article').attr('action');
-    webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-    webAddress = webAddress + "update_checked_articles";
-    $.post(
-        webAddress,
-        checkedArticles
-    );
-    // alert(JSON.stringify(webAddress));
+    showArticlesByIds(articleIds)
     return false;
 }
 
@@ -387,20 +331,10 @@ $(document).ready(function() {
             // Get clipboard object.
             copyStringObject = { clipboard: copyString };
 
-            // Add token that confirms login to AJAX request.
-            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            });
-
             // Send clipboard to server.
-            webAddress = $('.edit-article').attr('action');
-            webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-            webAddress = webAddress + "update_clipboard";
+            addToken();
             $.post(
-                webAddress,
+                getWebAddress() + "update_clipboard",
                 copyStringObject //,
                 // function(result) {
                     // alert("Urklipp har uppdaterats på servern.");
@@ -426,21 +360,10 @@ $(document).ready(function() {
         }
         else {
             // Get clipboard from server.
-            // Add token that confirms login to AJAX request.
-            var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            });
-
-            // Get clipboard from server.
+            addToken();
             rowItems = '';
-            webAddress = $('.edit-article').attr('action');
-            webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-            webAddress = webAddress + "get_clipboard";
             $.post(
-                webAddress,
+                getWebAddress() + "get_clipboard",
                 null,
                 function(result) {
                     rowItems = result.clipboard.split("@");
@@ -469,16 +392,6 @@ $(document).ready(function() {
                 }
             );
        }
-    }
-
-    function AddToken() {
-        // Add token that confirms login to AJAX request.
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        });
     }
 
     function searchArticles2(event) {
@@ -518,22 +431,11 @@ $(document).ready(function() {
         // alert(compareType + ' ' + searchString + ' ' + searchType);
 
         // Get articles from server.
-        //AddToken();
-        // Add token that confirms login to AJAX request.
-        var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
-        });
-        webAddress = $('.edit-article').attr('action');
-        webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-        webAddress = webAddress + "get_articles_by_search_criteria";
-        // alert(webAddress);
-        // alert(JSON.stringify(searchCriteria));
+        addToken();
+        var webAddress = getWebAddress() + "get_articles_by_search_criteria";
         // alert(JSON.stringify(articleSearchCriteria));
         $.post(
-            webAddress,
+            getWebAddress() + "get_articles_by_search_criteria",
             articleSearchCriteria,
             function(result) {
                 var appendTo = $('.search-article-result');

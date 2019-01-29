@@ -17,6 +17,7 @@ urlpatterns = [
     url(r'^get_word_file', views.get_word_file, name = 'get_word_file'),
     url(r'^get_word_file', views.get_word_file, name = 'get_word_file'),
     url(r'^reset_article_search_criteria', views.reset_article_search_criteria, name = 'reset_article_search_criteria'),
+    url(r'^update_checked_articles', views.update_checked_articles, name = 'update_checked_articles'),
     url(r'^update_clipboard', views.update_clipboard, name = 'update_clipboard'),
 
     # HTML responses.
