@@ -63,6 +63,26 @@ function isNotEmpty(val){
     return !isEmpty(val);
 }
 
+function moveArticleItemDown(event) {
+    var articleItem;
+    var articleItemNext;
+
+    event.preventDefault();
+    articleItem = $(event.currentTarget).parent();
+    articleItemNext = articleItem.next();
+    articleItemNext.first().after(articleItem.first());
+}
+
+function moveArticleItemUp(event) {
+    var articleItem;
+    var articleItemPrevious;
+
+    event.preventDefault();
+    articleItem = $(event.currentTarget).parent();
+    articleItemPrevious = articleItem.prev();
+    articleItemPrevious.first().before(articleItem.first());
+}
+
 function pasteArticleItems(event) {
     var articleItems;
     var selectedArticleItems;
@@ -436,32 +456,32 @@ $(document).ready(function() {
      }
 
      function createDiv(height){
-      var div = document.createElement('div');
-      div.style.top = 0;
-      div.style.right = 0;
-      div.style.width = '5px';
-      div.style.position = 'absolute';
-      div.style.cursor = 'col-resize';
-      div.style.userSelect = 'none';
-      div.style.height = height + 'px';
-      return div;
+         var div = document.createElement('div');
+         div.style.top = 0;
+         div.style.right = 0;
+         div.style.width = '5px';
+         div.style.position = 'absolute';
+         div.style.cursor = 'col-resize';
+         div.style.userSelect = 'none';
+         div.style.height = height + 'px';
+         return div;
      }
 
      function paddingDiff(col){
 
-      if (getStyleVal(col,'box-sizing') == 'border-box'){
-       return 0;
-      }
+          if (getStyleVal(col,'box-sizing') == 'border-box'){
+           return 0;
+          }
 
-      var padLeft = getStyleVal(col,'padding-left');
-      var padRight = getStyleVal(col,'padding-right');
-      return (parseInt(padLeft) + parseInt(padRight));
+          var padLeft = getStyleVal(col,'padding-left');
+          var padRight = getStyleVal(col,'padding-right');
+          return (parseInt(padLeft) + parseInt(padRight));
 
-     }
+         }
 
-     function getStyleVal(elm,css){
-      return (window.getComputedStyle(elm, null).getPropertyValue(css))
-     }
+         function getStyleVal(elm,css){
+          return (window.getComputedStyle(elm, null).getPropertyValue(css))
+         }
     };
     // End of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
 
@@ -469,10 +489,10 @@ $(document).ready(function() {
     $('.copy-rows').click(copyArticleItems);
     $('.cut-rows').click(cutArticleItems);
     $('.d-type').change(checkType);
-    $('.move-row-up').click(moveUp);
-    $('.move-row-down').click(moveDown);
-    $('.move-moment-up').click(moveMomentUp);
-    $('.move-moment-down').click(moveMomentDown);
+    $('.move-row-up').click(moveArticleItemUp);
+    $('.move-row-down').click(moveArticleItemDown);
+    $('.move-moment-up').click(moveArticleItemMomentUp);
+    $('.move-moment-down').click(moveArticleItemMomentDown);
     $('.paste-rows').click(pasteArticleItems);
     $('.remove-article').click(removeArticle);
     $('.remove-row').click(removeArticleItem);
@@ -480,6 +500,7 @@ $(document).ready(function() {
     $('.search-article-button').click(searchArticlesBySearchCriteria);
     $('.show-all-articles-button').click(showAllArticles);
     $('.show-selected-articles-button').click(showSelectedArticles);
+    $(".ta-bort").click(removeLemma);
 
     function addArticleItem(event) {
         var articleItemPosition;
@@ -494,8 +515,8 @@ $(document).ready(function() {
         $('#type-' + newArticleItemId).change(checkType);
         $('#value-' + newArticleItemId).change(checkValue);
         $('#value-' + newArticleItemId).keydown(hanteraTangent);
-        $('#row-up-' + newArticleItemId).click(moveUp);
-        $('#row-down-' + newArticleItemId).click(moveDown);
+        $('#row-up-' + newArticleItemId).click(moveArticleItemUp);
+        $('#row-down-' + newArticleItemId).click(moveArticleItemDown);
         $('#spara-och-ladda-om-' + newArticleItemId).click(updateArticle);
     }
 
@@ -509,20 +530,6 @@ $(document).ready(function() {
         event.preventDefault();
         copySelectedArticleItems();
         $(".lemma-list input:checked").parent().remove();
-    }
-
-    function moveUp(event) {
-        event.preventDefault();
-        element = $(event.currentTarget).parent();
-        prev = element.prev();
-        prev.first().before(element.first());
-    }
-
-    function moveDown(event) {
-        event.preventDefault();
-        element = $(event.currentTarget).parent();
-        next = element.next();
-        next.first().after(element.first());
     }
 
     /* TODO Hämsta listor (typer och landskap) från någon ändepunkt på servern */
@@ -551,7 +558,7 @@ $(document).ready(function() {
               momentUp.remove();
               $('#moment-down-' + radNummer).remove();
               $('#value-' + radNummer).show();
-              $('#moment-up-' + radNummer).click(moveMomentUp);
+              $('#moment-up-' + radNummer).click(moveArticleItemMomentUp);
               $('#moment-down-' + radNummer).click(moveMomentDown);
             }
             $(this).removeClass("red");
@@ -560,15 +567,15 @@ $(document).ready(function() {
         }
     }
 
-    function moveMomentUp(event) {
-        moveMoment(event, 'up');
+    function moveArticleItemMomentUp(event) {
+        moveArticleItemMoment(event, 'up');
     }
 
-    function moveMomentDown(event) {
-        moveMoment(event, 'down');
+    function moveArticleItemMomentDown(event) {
+        moveArticleItemMoment(event, 'down');
     }
 
-    function moveMoment(event, dir) {
+    function moveArticleItemMoment(event, dir) {
         event.preventDefault();
         element = $(event.currentTarget).parent();
         if (isM1(element)) {
@@ -584,10 +591,6 @@ $(document).ready(function() {
                 // ids.push(moment[0].id);
                 moment = moment.prev();
             }
-            console.log(moment);
-            console.log(moment.length);
-            console.log(moment[0].id);
-            console.log(ids);
             if (!moment[0].id) {
                 alert("Cannot flytta momentet upp, det är det första i artikeln.");
                 return;
@@ -598,7 +601,6 @@ $(document).ready(function() {
         nextMoment = element.next();
         var i = 1;
         while (nextMoment.length > 0 && nextMoment[0].id && !isRightMomentType(nextMoment)) {
-            console.log(i);
             /*
             if (dir == 'up') ids.unshift(nextMoment[0].id);
             else ids.push(nextMoment[0].id);
@@ -624,24 +626,15 @@ $(document).ready(function() {
                 if (!momentAfter[0]) break;
             }
         }
-        if (dir == 'up') ids.unshift(element[0].id);
-        /* else ids.unshift(nextMoment[0].id); */
-        // else ids.push(moment[0].id);
-        /* else ids.push(element[0].id); */
+        if (dir == 'up'){
+             ids.unshift(element[0].id);
+        }
         else {
-            /* ids.unshift(element[0].id); */
-            /* ids.push(momentAfter[0].id); */
-            /* ids.push(moment.next()[0].id); */ // Samma som två rader högre!
             ids.push(element[0].id);
             ids.unshift(nextMoment[0].id);
         }
-        console.log(nextMoment);
-        console.log(ids);
-        console.log("Moving stuff after:");
-        console.log(moment);
         for (i in ids) {
             var id = ids[i];
-            console.log(id);
             moment.after($('#' + id));
         }
     }
@@ -659,16 +652,8 @@ $(document).ready(function() {
     }
 
     function rowType(row) {
-        console.log(row);
-        console.log(row.length);
         return $(row[0].id.replace(/^data-/, '#type-'))[0].value.trim().toUpperCase();
     }
-
-    /*
-    function moveMomentDown(element) {
-        console.log("Starting to move moment down.");
-    }
-    */
 
     $('.d-value').change(checkValue); // TODO Klura ut varför .focusout har precis samma effekt (avfyras inte om ingen ändring)
 
@@ -726,7 +711,6 @@ $(document).ready(function() {
     }
 
     function toggleArticle(element) {
-        console.log(element);
         var artId = element[0].id.replace(/^lemma-/, 'artikel-');
         article = $('#' + artId);
         if (article.hasClass("hidden")) {
@@ -772,17 +756,10 @@ $(document).ready(function() {
     $('#skapa-pdf').click(function(event) { createPDF(event.currentTarget); });
 
     function createPDF(element) {
-        //console.log(element);
         $(element).html("Förbereder&nbsp;PDF...");
         articles = collectArticles();
-        //console.log("Article IDs:");
-        //console.log(articles);
         url = printableEndpoint('pdf', articles);
-        //alert(JSON.stringify(url));
-        //console.log("Getting " + url);
         $.get(url).done(function(data) {
-            //console.log("GET completed!  Data:");
-            //console.log(data);
             $(element).off('click');
             $(element).attr("href", data.trim());
             $(element).html("Ladda&nbsp;ner&nbsp;PDF");
@@ -795,8 +772,6 @@ $(document).ready(function() {
             articles.push(article.id.replace(/^lemma-/, ''));
         });
 
-        console.log("Samlat in artiklar:");
-        console.log(articles);
         return articles;
     }
 
@@ -822,18 +797,9 @@ $(document).ready(function() {
     function selectLemma(event) {
         if (!lastLemma) lastLemma = $('#lemma-0');
 
-        console.log(event.currentTarget);
         name = $(event.currentTarget).attr("name").replace(/^select/, 'selected');
-        console.log(name);
-        /* lemma = $('[name="' + name + '"]'); */
-        /*
-        lemma = $('#li-' + name);
-        console.log(lemma);
-        */
         var id = name.replace(/^selected-/, '');
-        console.log(id);
         lemma = $($('[name="select-' + id + '"]').parent().children()[1]).html().trim();
-        console.log(lemma);
         if ($(event.currentTarget).is(':checked')) {
             /* lemma.show(); */
             lastLemma.before('<li id="li-select-' + id + '" class="nobullet">' + lemma + ' <input type="checkbox" id="ta-bort-' + id + '" class="ta-bort" /> Ta bort <input type="hidden" name="selected-' + id + '" /></li>');
@@ -850,10 +816,7 @@ $(document).ready(function() {
         }
     }
 
-    $(".ta-bort").click(removeLemma);
-
     function removeLemma(event) {
-        console.log("Hej hej hej!");
         lemma = $(event.currentTarget).parent();
         var name = $(event.currentTarget).attr("name");
         if (name && name.match(/^selected-bokstav/)) {
@@ -862,14 +825,11 @@ $(document).ready(function() {
             selector = '[name="bokstav-' + bokstav + '"]'
         } else  {
             var id = lemma.attr("id").replace(/^li-select-/, '');
-            console.log(lemma);
             lemma.remove();
             $('[name="selected-' + id + '"]').remove();
             selector = '[name="select-' + id + '"]';
         }
-        console.log(selector);
         lemmaLeft = $(selector);
-        console.log(lemmaLeft);
         lemmaLeft.click();
     }
 
@@ -879,9 +839,7 @@ $(document).ready(function() {
         event.preventDefault();
         $('[style="display: list-item;"]').each(function(i, element) {
             if (!element.id.match(/^li-selected-/)) {
-                console.log($(element).children().first());
                 var id = $(element).children().first().attr("name").replace(/^select-/, '')
-                console.log(id);
                 $('[name="select-' + id + '"]').each(function(i, element) {
                     if (!$(element).is(':checked')) $(element).click();
                 });
@@ -896,7 +854,6 @@ $(document).ready(function() {
     function removeAll(event) {
         event.preventDefault();
         $('.ta-bort').each(function(i, element) {
-            console.log(element);
             /* var id = $(element).attr("id").replace(/^ta-bort-/, ''); */
             $(element).click();
         });
@@ -943,7 +900,6 @@ $(document).ready(function() {
     $('#omordna').click(omordna);
 
     function omordna() {
-        console.log(this);
         if ($('.flytta-upp').hasClass("hidden")) {
             $('.flytta-upp, .flytta-ner, #spara-ordning').show();
             $('.flytta-upp, .flytta-ner, #spara-ordning').removeClass("hidden");
@@ -990,8 +946,6 @@ $(document).ready(function() {
     }
 
     function speciellTecken(element, tecken) {
-        console.log("foo");
-        console.log(element);
         var text = element.value;
         textFöre = text.substring(0, element.selectionStart);
         var cursor = element.selectionStart;
@@ -1001,8 +955,6 @@ $(document).ready(function() {
     }
 
     function hanteraTangent(event) {
-        console.log(event.keyCode);
-        console.log(event.which);
         if (event.ctrlKey) {
             if (event.keyCode in speciellaTecken.control) {
                 event.preventDefault();
@@ -1014,9 +966,5 @@ $(document).ready(function() {
                 speciellTecken(this, speciellaTecken.initial[event.keyCode]);
             }
         }
-        console.log('--- igen ---');
-        console.log(event.charCode);
-        console.log(event.ctrlKey);
-        console.log('--- ---');
     }
 });
