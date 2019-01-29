@@ -1,5 +1,5 @@
+var articleItemCount;
 var lastLemma;
-var copyString;
 
 function addToken() {
     // Add token that confirms login to AJAX request.
@@ -11,6 +11,38 @@ function addToken() {
             xhr.setRequestHeader("X-CSRFToken", csrfToken);
         }
     });
+}
+
+function copySelectedArticleItems() {
+    var copyString;
+    var copyStringObject;
+    var selectedRows;
+
+    selectedRows = $(".lemma-list input:checked").parent();
+    if (selectedRows.length == 0) {
+        alert("Inga rader har markerats!");
+    }
+    else {
+        copyString = '';
+        $(".lemma-list input:checked").parent().each(
+            function() {
+                var type = $(this).children('.d-type');
+                var lemma = $(this).children('.d-value');
+                if (copyString != '') {
+                    copyString = copyString + '@';
+                }
+                copyString = copyString + type[0].value + '@' + lemma[0].value;
+            }
+        )
+        copyStringObject = { clipboard: copyString };
+
+        // Send clipboard to server.
+        addToken();
+        $.post(
+            getWebAddress() + "update_clipboard",
+            copyStringObject
+        );
+    }
 }
 
 function getWebAddress(){
@@ -31,6 +63,77 @@ function isNotEmpty(val){
     return !isEmpty(val);
 }
 
+function pasteArticleItems(event) {
+    var articleItems;
+    var selectedArticleItems;
+
+    event.preventDefault();
+    selectedArticleItems = $(".lemma-list input:checked").parent();
+    if (isEmpty(selectedArticleItems)) {
+        alert("Markera var raderna ska klistras in!");
+    }
+    else {
+        // Get clipboard from server.
+        addToken();
+        $.post(
+            getWebAddress() + "get_clipboard",
+            null,
+            function(result) {
+                articleItems = result.clipboard.split("@");
+                // alert(JSON.stringify(articleItems));
+
+                if (isEmpty(articleItems)) {
+                    alert("Finns inga rader att klistra in!");
+                }
+                else {
+                    index = 0;
+                    row = $(".lemma-list input:checked").first().parent();
+                    $(row).children('.d-type').val(articleItems[index]);
+                    index = index + 1;
+                    $(row).children('.d-value').val(articleItems[index]);
+                    index = index + 1;
+                    while (index < articleItems.length){
+                        $(row).children('.add-row').trigger('click');
+                        row = $(row).next();
+                        $(row).children('.d-type').val(articleItems[index]);
+                        index = index + 1;
+                        $(row).children('.d-value').val(articleItems[index]);
+                        index = index + 1;
+                    }
+                }
+                $(".lemma-list input:checked").prop( "checked", false );
+            }
+        );
+   }
+}
+
+function removeArticle(event) {
+    articleName = $('.article-name').attr('value')
+    action = $('.edit-article').attr('action')
+    articleId = action.substring(action.lastIndexOf("/") + 1, 100)
+    action = action.replace("edit", "delete")
+    if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
+        $('.edit-article').attr('action', action);
+    }
+    else {
+        event.preventDefault();
+    }
+}
+
+function removeArticleItem(event) {
+    var articleItemId;
+
+    event.preventDefault();
+    articleItemId = event.currentTarget.id.replace(/^remove-row-/, '')
+    if ($('#type-' + articleItemId)[0].value.trim() == '' &&
+        $('#value-' + articleItemId)[0].value.trim() == '') {
+        $(event.currentTarget).parent().remove();
+    }
+    else if (confirm("Är du säker?")) {
+        $(event.currentTarget).parent().remove();
+    }
+}
+
 function resetArticleSearchCriteria() {
     addToken();
     $.post(
@@ -44,6 +147,133 @@ function resetArticleSearchCriteria() {
     );
 
     return false;
+}
+
+function searchArticlesAutocomplete() {
+    var element;
+    var foundArticleCount;
+    var regexp;
+    var searchString;
+
+    searchString = this.value
+    if (searchString == "") {
+        $(".ordlistelement").each(function(i, childElement) {
+            $(childElement).parent().hide();
+        });
+        return;
+    }
+
+    $('#sökstrang').html(searchString);
+    regexp = new RegExp('^' + searchString.replace(/[-?,()]/g, "").toLowerCase());
+    foundArticleCount = 0;
+    $(".ordlistelement").each(function(i, childElement) {
+        element = $(childElement).parent();
+        if ($(childElement).attr("value").match(regexp)) { element.show(); foundArticleCount++; }
+        else element.hide();
+    });
+    if (foundArticleCount == 0) {
+        $('#searching-feedback').show();
+    }
+    else {
+        $('#searching-feedback').hide();
+    }
+}
+
+function searchArticlesBySearchCriteria(event) {
+    let compareType;
+    let searchText;
+    let searchType;
+
+    event.preventDefault();
+
+    // Get data from html page.
+    var searchCriteriaArray = [];
+    compareType = $("#search-compare-type1").val();
+    searchString = $("#search-string1").val();
+    searchType = $("#search-type1").val();
+    var searchCriteria = { compare_type: compareType,
+                           search_string: searchString,
+                           search_type: searchType
+                         };
+    searchCriteriaArray.push(searchCriteria);
+    compareType = $("#search-compare-type2").val();
+    searchString = $("#search-string2").val();
+    searchType = $("#search-type2").val();
+    searchCriteria = { compare_type: compareType,
+                           search_string: searchString,
+                           search_type: searchType
+                         };
+    searchCriteriaArray.push(searchCriteria);
+    compareType = $("#search-compare-type3").val();
+    searchString = $("#search-string3").val();
+    searchType = $("#search-type3").val();
+    searchCriteria = { compare_type: compareType,
+                           search_string: searchString,
+                           search_type: searchType
+                         };
+    searchCriteriaArray.push(searchCriteria);
+    var articleSearchCriteria = { searchCriteriaArray : searchCriteriaArray }
+    // alert(compareType + ' ' + searchString + ' ' + searchType);
+
+    // Get articles from server.
+    addToken();
+    $.post(
+        getWebAddress() + "get_articles_by_search_criteria",
+        articleSearchCriteria,
+        function(result) {
+            var appendTo = $('.search-article-result');
+            var articleCount = $('#number-of-found-articles');
+            webAddress = $('.edit-article').attr('action');
+            webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
+            appendTo.empty();
+            articleCount.empty();
+
+            // Show articles.
+            if (isNotEmpty(result) && isNotEmpty(result.articles)) {
+                var articleIndex;
+                articleCount.append('Antal artiklar = ' + result.articles.length);
+                for (articleIndex = 0; articleIndex < result.articles.length; articleIndex++) {
+                    var rankString;
+                    if (result.articles[articleIndex].rank > 0) {
+                        rankString = '<sup>' + result.articles[articleIndex].rank + '</sup>'
+                    }
+                    else {
+                        rankString = '';
+                    }
+
+                    var onClick = ' onclick="showArticle(' +
+                                   result.articles[articleIndex].id +
+                                   ')"';
+                    appendTo.append('<li class="nobullet search-article-result-row">' +
+                                   '<a href="'+
+                                   webAddress +
+                                   'edit/' +
+                                   result.articles[articleIndex].id +
+                                   '" value="' +
+                                   result.articles[articleIndex].id +
+                                   '"' +
+                                   onClick +
+                                   '>' +
+                                   rankString +
+                                   result.articles[articleIndex].lemma +
+                                   '</a>' +
+                                   '<button type="button" class="show-article"' +
+                                   onClick +
+                                   '>Visa</button>' +
+                                   '<input type="checkbox" class="select-article" ' +
+                                   'onClick="showArticleCheckedChange(' +
+                                   result.articles[articleIndex].id + ')">' +
+                                   '</li>');
+                }
+
+                // $('.show-article').click(showArticle);
+                // alert(JSON.stringify(result));
+            }
+            else {
+                articleCount.append('Antal artiklar = 0');
+            }
+        }
+    );
 }
 
 function showAllArticles(event) {
@@ -119,12 +349,24 @@ function showSelectedArticles(event) {
     return false;
 }
 
+function updateArticle(event) {
+    var articleItemIds;
+
+    articleItemIds = [];
+    $('.add-row').each(function(event, data) {
+        articleItemIds.push(data.id.replace('add-row-', ''));
+    });
+    $(this).after('<input type="hidden" name="order" value="' + articleItemIds.join() + '">');
+}
+
 $(document).ready(function() {
+    var articleItemLastId;
+
     if ($('.add-row').length > 0) {
-        lastId = $('.add-row').last()[0].id;
-        counter = Number(lastId.replace('add-row-', ''))
+        articleItemLastId = $('.add-row').last()[0].id;
+        articleItemCount = Number(articleItemLastId.replace('add-row-', ''))
     } else {
-        counter = 0;
+        articleItemCount = 0;
     }
 
     // Start of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
@@ -223,79 +465,51 @@ $(document).ready(function() {
     };
     // End of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
 
-    function addRow(event) {
-        event.preventDefault();
-        dpos = event.currentTarget.id.replace('add-row-', '');
-        counter++
-        newRowId = counter
-        $('#data-' + dpos).after('<li id="data-' + counter + '"><input type="text" size="3" name="type-' + counter + '" id="type-' + counter + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + counter + '" id="value-' + counter + '" class="d-value" /><button class="add-row" id="add-row-' + counter + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + counter + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + counter + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + counter + '" tabindex="-1"><strong>↓</strong></button><input type="checkbox" class="select-field" tabindex="-1" /></li>');
-        $('#add-row-' + counter).click(addRow);
-        $('#remove-row-' + counter).click(removeRow);
-        $('#type-' + counter).change(checkType);
-        $('#value-' + counter).change(checkValue);
-        $('#value-' + counter).keydown(hanteraTangent);
-        $('#row-up-' + counter).click(moveUp);
-        $('#row-down-' + counter).click(moveDown);
-        $('#spara-och-ladda-om-' + counter).click(submitOrder);
-    }
-
-    function submitOrder(event) {
-        ids = [];
-        $('.add-row').each(function(event, data) {
-            ids.push(data.id.replace('add-row-', ''));
-        });
-        $(this).after('<input type="hidden" name="order" value="' + ids.join() + '">');
-    }
-
-    function removeArticle(event) {
-        articleName = $('.article-name').attr('value')
-        action = $('.edit-article').attr('action')
-        articleId = action.substring(action.lastIndexOf("/") + 1, 100)
-        action = action.replace("edit", "delete")
-        if (confirm("Är du säker på att du vill ta bort artikel " + articleName + " (id = " + articleId + ")?")) {
-            $('.edit-article').attr('action', action);
-        }
-        else {
-            event.preventDefault();
-        }
-    }
-
-    $('.add-row').click(addRow);
-
-    $('.copy-rows').click(copyRows);
-
-    $('.cut-rows').click(cutRows);
-
-    $('.paste-rows').click(pasteRows);
-
-    $('.remove-row').click(removeRow);
-
+    $('.add-row').click(addArticleItem);
+    $('.copy-rows').click(copyArticleItems);
+    $('.cut-rows').click(cutArticleItems);
+    $('.d-type').change(checkType);
+    $('.move-row-up').click(moveUp);
+    $('.move-row-down').click(moveDown);
+    $('.move-moment-up').click(moveMomentUp);
+    $('.move-moment-down').click(moveMomentDown);
+    $('.paste-rows').click(pasteArticleItems);
     $('.remove-article').click(removeArticle);
-
-    $('.search-article-button').click(searchArticles2);
-
+    $('.remove-row').click(removeArticleItem);
+    $('.reset-search-criteria-button').click(resetArticleSearchCriteria);
+    $('.search-article-button').click(searchArticlesBySearchCriteria);
     $('.show-all-articles-button').click(showAllArticles);
-
     $('.show-selected-articles-button').click(showSelectedArticles);
 
-    $('.reset-search-criteria-button').click(resetArticleSearchCriteria);
+    function addArticleItem(event) {
+        var articleItemPosition;
 
-    function removeRow(event) {
         event.preventDefault();
-        var id = event.currentTarget.id.replace(/^remove-row-/, '')
-        if ($('#type-' + id)[0].value.trim() == '' && $('#value-' + id)[0].value.trim() == '') $(event.currentTarget).parent().remove();
-        else if (confirm("Är du säker?")) {
-            $(event.currentTarget).parent().remove();
-        }
+        articleItemPosition = event.currentTarget.id.replace('add-row-', '');
+        articleItemCount++
+        newArticleItemId = articleItemCount
+        $('#data-' + articleItemPosition).after('<li id="data-' + newArticleItemId + '"><input type="text" size="3" name="type-' + newArticleItemId + '" id="type-' + newArticleItemId + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + newArticleItemId + '" id="value-' + newArticleItemId + '" class="d-value" /><button class="add-row" id="add-row-' + newArticleItemId + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + newArticleItemId + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + newArticleItemId + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + newArticleItemId + '" tabindex="-1"><strong>↓</strong></button><input type="checkbox" class="select-field" tabindex="-1" /></li>');
+        $('#add-row-' + newArticleItemId).click(addArticleItem);
+        $('#remove-row-' + newArticleItemId).click(removeArticleItem);
+        $('#type-' + newArticleItemId).change(checkType);
+        $('#value-' + newArticleItemId).change(checkValue);
+        $('#value-' + newArticleItemId).keydown(hanteraTangent);
+        $('#row-up-' + newArticleItemId).click(moveUp);
+        $('#row-down-' + newArticleItemId).click(moveDown);
+        $('#spara-och-ladda-om-' + newArticleItemId).click(updateArticle);
     }
 
-    $('.move-row-up').click(moveUp);
+    function copyArticleItems(event) {
+        event.preventDefault();
+        copySelectedArticleItems();
+        $(".lemma-list input:checked").prop( "checked", false );
+    }
 
-    $('.move-row-down').click(moveDown);
-
-    $('.move-moment-up').click(moveMomentUp);
-
-    $('.move-moment-down').click(moveMomentDown);
+    function cutArticleItems(event) {
+        event.preventDefault();
+        copySelectedArticleItems();
+        $(".lemma-list input:checked").parent().remove();
+    }
 
     function moveUp(event) {
         event.preventDefault();
@@ -304,201 +518,12 @@ $(document).ready(function() {
         prev.first().before(element.first());
     }
 
-    function copyRows(event) {
-        event.preventDefault();
-        copySelectedRows();
-        $(".lemma-list input:checked").prop( "checked", false );
-    }
-
-    function copySelectedRows() {
-        selectedRows = $(".lemma-list input:checked").parent();
-        if (selectedRows.length == 0) {
-            alert("Inga rader har markerats!");
-        }
-        else {
-            copyString = '';
-            $(".lemma-list input:checked").parent().each(
-                function() {
-                    type = $(this).children('.d-type');
-                    lemma = $(this).children('.d-value');
-                    if (copyString != '') {
-                        copyString = copyString + '@';
-                    }
-                    copyString = copyString + type[0].value + '@' + lemma[0].value;
-                }
-            )
-
-            // Get clipboard object.
-            copyStringObject = { clipboard: copyString };
-
-            // Send clipboard to server.
-            addToken();
-            $.post(
-                getWebAddress() + "update_clipboard",
-                copyStringObject //,
-                // function(result) {
-                    // alert("Urklipp har uppdaterats på servern.");
-                // }
-            );
-
-            // confirm("Är du säker på att du vill kopiera " + selectedRows.length + " rader?");
-            // confirm("Är du säker på att du vill kopiera " + JSON.stringify(selectedRows) + " rader?");
-        }
-    }
-
-    function cutRows(event) {
-        event.preventDefault();
-        copySelectedRows();
-        $(".lemma-list input:checked").parent().remove();
-    }
-
-    function pasteRows(event) {
-        event.preventDefault();
-        selectedRows = $(".lemma-list input:checked").parent();
-        if (selectedRows.length == 0) {
-            alert("Markera var raderna ska klistras in!");
-        }
-        else {
-            // Get clipboard from server.
-            addToken();
-            rowItems = '';
-            $.post(
-                getWebAddress() + "get_clipboard",
-                null,
-                function(result) {
-                    rowItems = result.clipboard.split("@");
-                    // alert(JSON.stringify(rowItems));
-
-                    if (isEmpty(rowItems)) {
-                        alert("Finns inga rader att klistra in!");
-                    }
-                    else {
-                        index = 0;
-                        row = $(".lemma-list input:checked").first().parent();
-                        $(row).children('.d-type').val(rowItems[index]);
-                        index = index + 1;
-                        $(row).children('.d-value').val(rowItems[index]);
-                        index = index + 1;
-                        while (index < rowItems.length){
-                            $(row).children('.add-row').trigger('click');
-                            row = $(row).next();
-                            $(row).children('.d-type').val(rowItems[index]);
-                            index = index + 1;
-                            $(row).children('.d-value').val(rowItems[index]);
-                            index = index + 1;
-                        }
-                    }
-                    $(".lemma-list input:checked").prop( "checked", false );
-                }
-            );
-       }
-    }
-
-    function searchArticles2(event) {
-        let compareType;
-        let searchText;
-        let searchType;
-
-        event.preventDefault();
-
-        // Get data from html page.
-        var searchCriteriaArray = [];
-        compareType = $("#search-compare-type1").val();
-        searchString = $("#search-string1").val();
-        searchType = $("#search-type1").val();
-        var searchCriteria = { compare_type: compareType,
-                               search_string: searchString,
-                               search_type: searchType
-                             };
-        searchCriteriaArray.push(searchCriteria);
-        compareType = $("#search-compare-type2").val();
-        searchString = $("#search-string2").val();
-        searchType = $("#search-type2").val();
-        searchCriteria = { compare_type: compareType,
-                               search_string: searchString,
-                               search_type: searchType
-                             };
-        searchCriteriaArray.push(searchCriteria);
-        compareType = $("#search-compare-type3").val();
-        searchString = $("#search-string3").val();
-        searchType = $("#search-type3").val();
-        searchCriteria = { compare_type: compareType,
-                               search_string: searchString,
-                               search_type: searchType
-                             };
-        searchCriteriaArray.push(searchCriteria);
-        var articleSearchCriteria = { searchCriteriaArray : searchCriteriaArray }
-        // alert(compareType + ' ' + searchString + ' ' + searchType);
-
-        // Get articles from server.
-        addToken();
-        var webAddress = getWebAddress() + "get_articles_by_search_criteria";
-        // alert(JSON.stringify(articleSearchCriteria));
-        $.post(
-            getWebAddress() + "get_articles_by_search_criteria",
-            articleSearchCriteria,
-            function(result) {
-                var appendTo = $('.search-article-result');
-                var articleCount = $('#number-of-found-articles');
-                webAddress = $('.edit-article').attr('action');
-                webAddress = webAddress.substring(0, webAddress.indexOf("edit"));
-                appendTo.empty();
-                articleCount.empty();
-                if (isNotEmpty(result) && isNotEmpty(result.articles)) {
-                    var articleIndex;
-                    articleCount.append('Antal artiklar = ' + result.articles.length);
-                    for (articleIndex = 0; articleIndex < result.articles.length; articleIndex++) {
-                        var rankString;
-                        if (result.articles[articleIndex].rank > 0) {
-                            rankString = '<sup>' + result.articles[articleIndex].rank + '</sup>'
-                        }
-                        else {
-                            rankString = '';
-                        }
-
-                        var onClick = ' onclick="showArticle(' +
-                                       result.articles[articleIndex].id +
-                                       ')"';
-                        appendTo.append('<li class="nobullet search-article-result-row">' +
-                                       '<a href="'+
-                                       webAddress +
-                                       'edit/' +
-                                       result.articles[articleIndex].id +
-                                       '" value="' +
-                                       result.articles[articleIndex].id +
-                                       '"' +
-                                       onClick +
-                                       '>' +
-                                       rankString +
-                                       result.articles[articleIndex].lemma +
-                                       '</a>' +
-                                       '<button type="button" class="show-article"' +
-                                       onClick +
-                                       '>Visa</button>' +
-                                       '<input type="checkbox" class="select-article" ' +
-                                       'onClick="showArticleCheckedChange(' +
-                                       result.articles[articleIndex].id + ')">' +
-                                       '</li>');
-                    }
-
-                    // $('.show-article').click(showArticle);
-                    // alert(JSON.stringify(result));
-                }
-                else {
-                    articleCount.append('Antal artiklar = 0');
-                }
-            }
-        );
-    }
-
     function moveDown(event) {
         event.preventDefault();
         element = $(event.currentTarget).parent();
         next = element.next();
         next.first().after(element.first());
     }
-
-    $('.d-type').change(checkType);
 
     /* TODO Hämsta listor (typer och landskap) från någon ändepunkt på servern */
     types = [
@@ -677,34 +702,9 @@ $(document).ready(function() {
         }
     }
 
-    $('.spara-och-ladda-om').click(submitOrder);
+    $('.spara-och-ladda-om').click(updateArticle);
 
-    $('#sok-artikel').on('keyup', searchArticles);
-
-    function searchArticles() {
-        string = this.value
-        if (string == "") {
-            hideEverything();
-            return;
-        }
-
-        $('#sökstrang').html(string);
-        regexp = new RegExp('^' + string.replace(/[-?,()]/g, "").toLowerCase());
-        var nbhits = 0;
-        $(".ordlistelement").each(function(i, childElement) {
-            element = $(childElement).parent();
-            if ($(childElement).attr("value").match(regexp)) { element.show(); nbhits++; }
-            else element.hide();
-        });
-        if (nbhits == 0) $('#searching-feedback').show();
-        else $('#searching-feedback').hide();
-    }
-
-    function hideEverything() {
-        $(".ordlistelement").each(function(i, childElement) {
-            $(childElement).parent().hide();
-        });
-    }
+    $('#sok-artikel').on('keyup', searchArticlesAutocomplete);
 
     $('.träff .träffelement').click(function(event) { toggleArticle($(event.currentTarget).parent()) });
     $('.virgin').click(function(event) { fetchArticle(event.currentTarget); });
