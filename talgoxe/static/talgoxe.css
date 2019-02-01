@@ -59,6 +59,10 @@ body {
   font-size: 80%;
 }
 
+.show-articles-buttons {
+    clear: both;
+}
+
 .select-article {
   float: right;
   margin-right: 4px;
