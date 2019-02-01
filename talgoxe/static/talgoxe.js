@@ -762,6 +762,7 @@ $(document).ready(function() {
         $.get(url).done(function(data) {
             $(element).off('click');
             $(element).attr("href", data.trim());
+            $(element).attr("target", "_blank");
             $(element).html("Ladda&nbsp;ner&nbsp;PDF");
         });
     }
