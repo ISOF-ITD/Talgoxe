@@ -195,6 +195,7 @@ body {
 
 .lemma-list {
   border: 1px solid black;
+  clear: both;
   overflow-y: scroll;
   overflow-x: hidden;
   height: 510px;
@@ -456,6 +457,10 @@ a#skapa-odf, a#skapa-docx {
 .add-row, .remove-row, .move-row-up, .move-row-down, .move-moment-up, .move-moment-down, .spara-och-ladda-om, .select-field {
   font-family: 'Arial';
   vertical-align: top;
+}
+
+.add-first-row {
+  vertical-align: center;
 }
 
 #lemmata-to-select {

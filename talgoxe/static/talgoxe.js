@@ -493,6 +493,7 @@ $(document).ready(function() {
     };
     // End of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
 
+    $('.add-first-row').click(addFirstArticleItem);
     $('.add-row').click(addArticleItem);
     $('.copy-rows').click(copyArticleItems);
     $('.cut-rows').click(cutArticleItems);
@@ -518,6 +519,23 @@ $(document).ready(function() {
         articleItemCount++
         newArticleItemId = articleItemCount
         $('#data-' + articleItemPosition).after('<li id="data-' + newArticleItemId + '"><input type="text" size="3" name="type-' + newArticleItemId + '" id="type-' + newArticleItemId + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + newArticleItemId + '" id="value-' + newArticleItemId + '" class="d-value" /><button class="add-row" id="add-row-' + newArticleItemId + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + newArticleItemId + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + newArticleItemId + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + newArticleItemId + '" tabindex="-1"><strong>↓</strong></button><input type="checkbox" class="select-field" tabindex="-1" /></li>');
+        $('#add-row-' + newArticleItemId).click(addArticleItem);
+        $('#remove-row-' + newArticleItemId).click(removeArticleItem);
+        $('#type-' + newArticleItemId).change(checkType);
+        $('#value-' + newArticleItemId).change(checkValue);
+        $('#value-' + newArticleItemId).keydown(hanteraTangent);
+        $('#row-up-' + newArticleItemId).click(moveArticleItemUp);
+        $('#row-down-' + newArticleItemId).click(moveArticleItemDown);
+        $('#spara-och-ladda-om-' + newArticleItemId).click(updateArticle);
+    }
+
+    function addFirstArticleItem(event) {
+        var articleItemPosition;
+
+        event.preventDefault();
+        articleItemCount++
+        newArticleItemId = articleItemCount
+        $('.lemma-list').prepend('<li id="data-' + newArticleItemId + '"><input type="text" size="3" name="type-' + newArticleItemId + '" id="type-' + newArticleItemId + '" class="d-type"><textarea rows="1" style="width: 55%" name="value-' + newArticleItemId + '" id="value-' + newArticleItemId + '" class="d-value" /><button class="add-row" id="add-row-' + newArticleItemId + '" tabindex="-1"><strong>+</strong></button><button class="remove-row" id="remove-row-' + newArticleItemId + '" tabindex="-1"><strong>-</strong></button><button class="move-row-up" id="row-up-' + newArticleItemId + '" tabindex="-1"><strong>↑</strong></button><button class="move-row-down" id="row-down-' + newArticleItemId + '" tabindex="-1"><strong>↓</strong></button><input type="checkbox" class="select-field" tabindex="-1" /></li>');
         $('#add-row-' + newArticleItemId).click(addArticleItem);
         $('#remove-row-' + newArticleItemId).click(removeArticleItem);
         $('#type-' + newArticleItemId).change(checkType);
