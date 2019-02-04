@@ -132,6 +132,25 @@ body {
   margin: 4px;
 }
 
+.edit-header {
+    display: inline;
+    margin-top: 4px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    margin-left: 4px;
+}
+
+.edit-time {
+    display: inline;
+    float: right;
+    font-family: 'Droid Serif', Georgia, Times, serif, roman;
+    font-size: 80%;
+    margin-top: 8px;
+    margin-right: 4px;
+    margin-bottom: 8px;
+    margin-left: 4px;
+}
+
 #new_search h2 {
   margin: 4px;
 }
@@ -145,7 +164,13 @@ body {
 }
 
 .edit-article {
-  font-family: 'Arial';
+    clear: both;
+    font-family: 'Arial';
+}
+
+.edit-header-div {
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 #input-control input {
@@ -237,11 +262,6 @@ body {
 #handle-article {
   width: 100%;
   height: 550px;
-}
-
-#handle-article h2 {
-  margin-block-start: 4px;
-  margin-block-end: 4px;
 }
 
 .show-article {

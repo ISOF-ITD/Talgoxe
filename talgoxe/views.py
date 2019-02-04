@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import os
 
+from datetime import datetime, timedelta
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
@@ -65,6 +66,16 @@ def edit(request, id = None):
     if (article is None):
         context['is_create_article_page'] = True
     else:
+        if (not UserSettings.get_edit_article(request) is None):
+            edit_article = UserSettings.get_edit_article(request)
+            update_time = edit_article.uppdaterat
+            for article_item in edit_article.spolarna:
+                if (not article_item.uppdaterat is None):
+                    if (update_time < article_item.uppdaterat):
+                        update_time = article_item.uppdaterat
+            # TODO: Uggly way to change time zone.
+            update_time = update_time + timedelta(hours = 1)
+            context['update_time'] = update_time.strftime("%Y-%m-%d %H:%M:%S")
         context['is_edit_article_page'] = True
 
     return HttpResponse(template.render(context, request))

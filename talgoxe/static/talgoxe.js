@@ -28,10 +28,16 @@ function copySelectedArticleItems() {
             function() {
                 var type = $(this).children('.d-type');
                 var lemma = $(this).children('.d-value');
+                if (lemma.length == 0) {
+                    lemma = '';
+                }
+                else {
+                    lemma = lemma[0].value;
+                }
                 if (copyString != '') {
                     copyString = copyString + '@';
                 }
-                copyString = copyString + type[0].value + '@' + lemma[0].value;
+                copyString = copyString + type[0].value + '@' + lemma;
             }
         )
         copyStringObject = { clipboard: copyString };
@@ -112,6 +118,7 @@ function pasteArticleItems(event) {
                     index = index + 1;
                     $(row).children('.d-value').val(articleItems[index]);
                     index = index + 1;
+                    $(row).children('.d-type').trigger('change');
                     while (index < articleItems.length){
                         $(row).children('.add-row').trigger('click');
                         row = $(row).next();
@@ -119,6 +126,7 @@ function pasteArticleItems(event) {
                         index = index + 1;
                         $(row).children('.d-value').val(articleItems[index]);
                         index = index + 1;
+                        $(row).children('.d-type').trigger('change');
                     }
                 }
                 $(".lemma-list input:checked").prop( "checked", false );

@@ -5,8 +5,11 @@
 <table id="handle-article">
   <tr>
     <td id="inmatning">
-        <h2>Inmatning</h2>
+        <div class="edit-header-div">
+        <h2 class="edit-header">Inmatning</h2>
         {% if current_article and is_edit_article_page %}
+                <p class="edit-time">Sparad: {{update_time}}</p>
+            </div>
             <form class="edit-article" action="{% url 'edit' current_article.id %}" method="POST">
                 {% csrf_token %}
                 <ul id="input-control">
@@ -43,6 +46,7 @@
                 </ul>
             </form>
         {% else %}
+            </div>
             <form class="edit-article" action="{% url 'edit' %}" method="POST">
                 {% csrf_token %}
                 <ul id="input-control">

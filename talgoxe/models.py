@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import datetime
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Max
@@ -190,6 +191,7 @@ class Artikel(models.Model):
     def update(self, post_data):
         order = post_data['order'].split(',')
         stickord = post_data['stickord']
+        self.uppdaterat = datetime.datetime.now()
         if self.lemma != stickord:
             self.lemma = stickord
             self.lemma_sortable = Artikel.get_lemma_sortable(stickord)
