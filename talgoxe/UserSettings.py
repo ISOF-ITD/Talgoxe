@@ -8,6 +8,32 @@ userSettings = {}
 class UserSettings:
 
     @staticmethod
+    def delete_article(article_id):
+        for settings in userSettings.values():
+            if 'articlesHtml' in settings:
+                articles = settings['articlesHtml']
+                if (len(articles) > 0) and not (articles[0] is None):
+                    index = len(articles)
+                    while (index > 0):
+                        index -= 1
+                        if (articles[index].id == article_id):
+                            settings['articlesHtml'].pop(index)
+
+            if 'editArticle' in settings:
+                article = settings['editArticle']
+                if (article.id == article_id):
+                    settings['editArticle'] = None
+
+            if 'searchArticles' in settings:
+                articles = settings['searchArticles']
+                if (len(articles) > 0) and not (articles[0] is None):
+                    index = len(articles)
+                    while (index > 0):
+                        index -= 1
+                        if (articles[index].id == article_id):
+                            settings['searchArticles'].pop(index)
+
+    @staticmethod
     def get_articles_html(request):
         settings = UserSettings.get_settings(request)
         if 'articlesHtml' in settings:

@@ -21,7 +21,7 @@ from talgoxe.UserSettings import UserSettings
 def delete(request, id):
     AccessManager.check_edit_permission(request.user)
     ArticleManager.delete_article(id)
-    UserSettings.update_edit_article(request, None)
+    UserSettings.delete_article(int(id))
     return HttpResponseRedirect(reverse('edit'))
 
 
