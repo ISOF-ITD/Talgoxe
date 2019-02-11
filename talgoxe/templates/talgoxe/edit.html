@@ -92,9 +92,9 @@
             <div class="search-article-criteria">
                 <select id="search-type1" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_one.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
-                  <option value="ArticleItem" {% if search_criteria_one.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_one.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
-                  <option value="All" {% if search_criteria_one.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
+                  <option value="ArticleItem" {% if search_criteria_one.search_type == 'ArticleItem' %}selected="selected"{% endif %}>kodinneh&aring;ll</option>
+                  <option value="All" {% if search_criteria_one.search_type == 'All' %}selected="selected"{% endif %}>fritext</option>
                 </select>
                 <select id="search-compare-type1" class="search-select search-compare-type">
                   <option value="StartsWith" {% if search_criteria_one.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>
@@ -107,9 +107,9 @@
             <div class="search-article-criteria">
                 <select id="search-type2" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_two.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
-                  <option value="ArticleItem" {% if search_criteria_two.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_two.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
-                  <option value="All" {% if search_criteria_two.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
+                  <option value="ArticleItem" {% if search_criteria_two.search_type == 'ArticleItem' %}selected="selected"{% endif %}>kodinneh&aring;ll</option>
+                  <option value="All" {% if search_criteria_two.search_type == 'All' %}selected="selected"{% endif %}>fritext</option>
                 </select>
                 <select id="search-compare-type2" class="search-select search-compare-type">
                   <option value="StartsWith" {% if search_criteria_two.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>
@@ -122,9 +122,9 @@
             <div class="search-article-criteria">
                 <select id="search-type3" class="search-select search-select-field">
                   <option value="Lemma" {% if search_criteria_three.search_type == 'Lemma' %}selected="selected"{% endif %}>stickord</option>
-                  <option value="ArticleItem" {% if search_criteria_three.search_type == 'ArticleItem' %}selected="selected"{% endif %}>artikeldel</option>
                   <option value="ArticleItemType" {% if search_criteria_three.search_type == 'ArticleItemType' %}selected="selected"{% endif %}>kod</option>
-                  <option value="All" {% if search_criteria_three.search_type == 'All' %}selected="selected"{% endif %}>alla</option>
+                  <option value="ArticleItem" {% if search_criteria_three.search_type == 'ArticleItem' %}selected="selected"{% endif %}>kodinneh&aring;ll</option>
+                  <option value="All" {% if search_criteria_three.search_type == 'All' %}selected="selected"{% endif %}>fritext</option>
                 </select>
                 <select id="search-compare-type3" class="search-select search-compare-type">
                   <option value="StartsWith" {% if search_criteria_three.compare_type == 'StartsWith' %}selected="selected"{% endif %}>b&ouml;rjar med</option>

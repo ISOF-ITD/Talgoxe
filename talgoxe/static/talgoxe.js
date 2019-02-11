@@ -118,6 +118,7 @@ function pasteArticleItems(event) {
                     index = index + 1;
                     $(row).children('.d-value').val(articleItems[index]);
                     index = index + 1;
+                    $(row).children('.d-value').trigger('change');
                     $(row).children('.d-type').trigger('change');
                     while (index < articleItems.length){
                         $(row).children('.add-row').trigger('click');
@@ -126,6 +127,7 @@ function pasteArticleItems(event) {
                         index = index + 1;
                         $(row).children('.d-value').val(articleItems[index]);
                         index = index + 1;
+                        $(row).children('.d-value').trigger('change');
                         $(row).children('.d-type').trigger('change');
                     }
                 }
@@ -355,8 +357,12 @@ function showArticlesByIds(articleIds) {
         showArticleIds,
             function(result) {
             var appendTo = $('#artikel');
-            appendTo.empty();
-            appendTo.append(result.articlesHtml);
+            var div = $('#artikel');
+            // appendTo.empty();
+            // appendTo.append(result.articlesHtml);
+            appendTo.find(':first-child').remove();
+            appendTo.find(':first-child').remove();
+            appendTo.prepend(result.articlesHtml);
             getPdfFile = $('#get-pdf-file').attr('target', '_blank')
         }
     );
@@ -396,6 +402,10 @@ $(document).ready(function() {
     } else {
         articleItemCount = 0;
     }
+
+    $('#inmatning').on( 'change keyup keydown paste cut', 'textarea', function (){
+        $(this).height(0).height(this.scrollHeight);
+    }).find( 'textarea' ).change();
 
     // Start of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
     // The code is used to create resizable tables.
@@ -527,6 +537,12 @@ $(document).ready(function() {
         $('#row-up-' + newArticleItemId).click(moveArticleItemUp);
         $('#row-down-' + newArticleItemId).click(moveArticleItemDown);
         $('#spara-och-ladda-om-' + newArticleItemId).click(updateArticle);
+        $('#data-' + newArticleItemId).on( 'change keyup keydown paste cut', 'textarea', function (){
+            $(this).height(0).height(this.scrollHeight);
+        }).find( 'textarea' ).change();
+        //if ($('.lemmalist').last()[0] == $('#data-' + newArticleItemId)[0]) {
+        //    $('#data-' + newArticleItemId).get(0).scrollIntoView();
+        //}
     }
 
     function addFirstArticleItem(event) {
