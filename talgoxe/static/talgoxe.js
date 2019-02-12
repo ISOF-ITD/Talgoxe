@@ -358,8 +358,6 @@ function showArticlesByIds(articleIds) {
             function(result) {
             var appendTo = $('#artikel');
             var div = $('#artikel');
-            // appendTo.empty();
-            // appendTo.append(result.articlesHtml);
             appendTo.find(':first-child').remove();
             appendTo.find(':first-child').remove();
             appendTo.prepend(result.articlesHtml);
@@ -540,9 +538,11 @@ $(document).ready(function() {
         $('#data-' + newArticleItemId).on( 'change keyup keydown paste cut', 'textarea', function (){
             $(this).height(0).height(this.scrollHeight);
         }).find( 'textarea' ).change();
-        //if ($('.lemmalist').last()[0] == $('#data-' + newArticleItemId)[0]) {
-        //    $('#data-' + newArticleItemId).get(0).scrollIntoView();
-        //}
+        //alert(JSON.stringify($('.lemma-list li:last-child')[0].id));
+        //alert(JSON.stringify($('#data-' + newArticleItemId)[0].id));
+        if ($('.lemma-list li:last-child')[0].id == $('#data-' + newArticleItemId)[0].id) {
+            $('#data-' + newArticleItemId).get(0).scrollIntoView();
+        }
     }
 
     function addFirstArticleItem(event) {
