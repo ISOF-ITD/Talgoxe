@@ -407,6 +407,10 @@ $(document).ready(function() {
         articleItemCount = 0;
     }
 
+    $('#inmatning').on( 'change keyup keydown paste cut', 'textarea', function (){
+        $(this).height(0).height(this.scrollHeight);
+    }).find( 'textarea' ).change();
+
     // Start of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
     // The code is used to create resizable tables.
     var tables = document.getElementsByTagName('table');
@@ -502,10 +506,6 @@ $(document).ready(function() {
          }
     };
     // End of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
-
-    $('#inmatning').on( 'change keyup keydown paste cut', 'textarea', function (){
-        $(this).height(0).height(this.scrollHeight);
-    }).find( 'textarea' ).change();
 
     $('.add-first-row').click(addFirstArticleItem);
     $('.add-row').click(addArticleItem);
