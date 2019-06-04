@@ -513,7 +513,7 @@ $(document).ready(function() {
             // console.log('new hight = ' + this.scrollHeight);
             $(this).height(0).height(this.scrollHeight);
         }).find( 'textarea' ).change();
-    }, 200);
+    }, 100);
 
     $('.add-first-row').click(addFirstArticleItem);
     $('.add-row').click(addArticleItem);
