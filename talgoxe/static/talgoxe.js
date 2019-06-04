@@ -503,9 +503,17 @@ $(document).ready(function() {
     };
     // End of code copied from https://www.brainbell.com/javascript/making-resizable-table-js.html
 
-    $('#inmatning').on( 'change keyup keydown paste cut', 'textarea', function (){
-        $(this).height(0).height(this.scrollHeight);
-    }).find( 'textarea' ).change();
+    setTimeout(function() {
+        // This code automatically resizes text areas in article items.
+        // The code must be run after document is fully loaded.
+        // A timeout is used to make sure that the document is fully loaded.
+        $('#inmatning').on( 'change keyup keydown paste cut', 'textarea', function (){
+            // console.log('this = %o', this);
+            // console.log('height = %o', $(this).height(0));
+            // console.log('new hight = ' + this.scrollHeight);
+            $(this).height(0).height(this.scrollHeight);
+        }).find( 'textarea' ).change();
+    }, 200);
 
     $('.add-first-row').click(addFirstArticleItem);
     $('.add-row').click(addArticleItem);
